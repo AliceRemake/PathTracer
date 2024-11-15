@@ -1,0 +1,12 @@
+[submodule "External/fmt"]
+	path = External/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "External/stb"]
+	path = External/stb
+	url = https://github.com/nothings/stb.git
+[submodule "External/tinyxml2"]
+	path = External/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git
+[submodule "External/eigen"]
+	path = External/eigen
+	url = https://gitlab.com/libeigen/eigen.git
