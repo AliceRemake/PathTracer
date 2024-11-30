@@ -6,7 +6,7 @@ ADD_COMPILE_DEFINITIONS(
     CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
 )
 
-IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+IF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "GNU")
     IF(CMAKE_BUILD_TYPE MATCHES "Debug")
         ADD_COMPILE_OPTIONS(
           "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
@@ -16,14 +16,14 @@ IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
           "-O3" "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
         )
     ENDIF()
-ELSEIF(CMAKE_CXX_COMPILER_IR MATCHES "MSVC")
+ELSEIF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
     IF(CMAKE_BUILD_TYPE MATCHES "Debug")
         ADD_COMPILE_OPTIONS(
-            # TODO
+            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/GR-" "/W4"
         )
     ELSE()
         ADD_COMPILE_OPTIONS(
-            # TODO
+            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/GR-" "/W4"
         )
     ENDIF()
 ELSE()

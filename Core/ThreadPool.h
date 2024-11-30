@@ -60,7 +60,9 @@ public:
         threads.reserve(THREAD_NUMBER);
         for (size_t thread_id = 0; thread_id < THREAD_NUMBER; ++thread_id)
         {
-            threads.emplace_back(std::bind(ThreadLoop, this));
+            threads.emplace_back([this]() {
+                ThreadLoop();
+            });
         }
     }
 
@@ -79,9 +81,9 @@ public:
     }
 
     template<class Function, class... Args>
-    std::future<std::result_of_t<Function(Args...)>> Submit(Function&& function, Args&&... args)
+    std::future<std::invoke_result_t<Function, Args...>> Submit(Function&& function, Args&&... args)
     {
-        using ReturnType = std::result_of_t<Function(Args...)>;
+        using ReturnType = std::invoke_result_t<Function, Args...>;
         std::shared_ptr<std::packaged_task<ReturnType()>> work = std::make_shared<std::packaged_task<ReturnType()>>(
             std::bind(std::forward<Function>(function), std::forward<Args>(args)...)
         );

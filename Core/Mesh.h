@@ -32,16 +32,7 @@ struct Mesh final : Hittable
 
     struct Triangle final // Three Vertex + One Material.
     {
-        union
-        {
-            Index v[3];
-            struct
-            {
-                Index v0;
-                Index v1;
-                Index v2;
-            };
-        };
+        Index v[3];
         Eigen::Index material;
 
         NODISCARD bool Hit(const Mesh& mesh, const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT;

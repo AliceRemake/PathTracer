@@ -15,14 +15,14 @@
 #include <Core/Ray.h>
 
 // Ignore tinyxml2 Warnings.
-#ifdef __GNUC__
+#if defined(__GNUC__)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wtype-limits"
 #endif
 
 #include <tinyxml2.h>
 
-#ifdef __GNUC__
+#if defined(__GNUC__)
     #pragma GCC diagnostic pop
 #endif
 
@@ -35,7 +35,7 @@ NODISCARD Camera Camera::FromXML(const char* filename) NOEXCEPT
     case tinyxml2::XML_SUCCESS:
         break;
     default:
-        ASSERT(false && "Error Reading XML File.");
+        FATAL("Error Reading XML File.");
     }
 
     const tinyxml2::XMLElement* xml_camera = doc.FirstChildElement("camera");         ASSERT(xml_camera != nullptr);

@@ -50,7 +50,13 @@
 #define NOEXCEPT noexcept
 #define OVERRIDE override
 #define CONSTEXPR constexpr
-#define FORCE_INLINE inline __attribute__((always_inline))
+#if defined(__GNUC__) || defined(__clang__)
+    #define FORCE_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+    #define FORCE_INLINE __forceinline
+#else
+    #define FORCE_INLINE
+#endif
 
 #define __STR(s) #s // NOLINT(*-reserved-identifier)
 #define STR(s) __STR(s)
@@ -66,6 +72,8 @@
 #else
   #define ASSERT(exp) do { if(!(exp)) {DEBUGBREAK(); exit(EXIT_FAILURE);} } while (0)
 #endif
+
+#define FATAL(msg) do { fmt::fprintf(stderr, msg); exit(EXIT_FAILURE); } while(0)
 
 template <typename TO, typename FROM>
 NODISCARD CONSTEXPR FORCE_INLINE bool IsA(FROM* ptr) NOEXCEPT {
@@ -134,62 +142,62 @@ CONSTEXPR double EPS = std::numeric_limits<double>::epsilon();
 CONSTEXPR double INF = std::numeric_limits<double>::infinity();
 CONSTEXPR double PI = 3.14; // TODO
 
-NODISCARD CONSTEXPR FORCE_INLINE double ToRadians(const double degree) NOEXCEPT
+NODISCARD FORCE_INLINE double ToRadians(const double degree) NOEXCEPT
 {
     return degree * PI / 180.0;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE double ToDegree(const double radians) NOEXCEPT
+NODISCARD FORCE_INLINE double ToDegree(const double radians) NOEXCEPT
 {
     return radians * 180.0 / PI;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool Feq(const double x, const double y) NOEXCEPT
+NODISCARD FORCE_INLINE bool Feq(const double x, const double y) NOEXCEPT
 {
     return std::abs(x - y) <= EPS;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool Fne(const double x, const double y) NOEXCEPT
+NODISCARD FORCE_INLINE bool Fne(const double x, const double y) NOEXCEPT
 {
     return std::abs(x - y) > EPS;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool Fgt(const double x, const double y) NOEXCEPT
+NODISCARD FORCE_INLINE bool Fgt(const double x, const double y) NOEXCEPT
 {
     return x > y + EPS;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool Fge(const double x, const double y) NOEXCEPT
+NODISCARD FORCE_INLINE bool Fge(const double x, const double y) NOEXCEPT
 {
     return x >= y - EPS;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool Flt(const double x, const double y) NOEXCEPT
+NODISCARD FORCE_INLINE bool Flt(const double x, const double y) NOEXCEPT
 {
     return x < y - EPS;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool Fle(const double x, const double y) NOEXCEPT
+NODISCARD FORCE_INLINE bool Fle(const double x, const double y) NOEXCEPT
 {
     return x <= y + EPS;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool FIsZero(const double x) NOEXCEPT
+NODISCARD FORCE_INLINE bool FIsZero(const double x) NOEXCEPT
 {
     return Feq(x, 0.0);
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool FIsInfinity(const double x) NOEXCEPT
+NODISCARD FORCE_INLINE bool FIsInfinity(const double x) NOEXCEPT
 {
     return x == INF;
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool FIsPositive(const double x) NOEXCEPT
+NODISCARD FORCE_INLINE bool FIsPositive(const double x) NOEXCEPT
 {
     return Fgt(x, 0.0);
 }
 
-NODISCARD CONSTEXPR FORCE_INLINE bool FIsNegative(const double x) NOEXCEPT
+NODISCARD FORCE_INLINE bool FIsNegative(const double x) NOEXCEPT
 {
     return Flt(x, 0.0);
 }

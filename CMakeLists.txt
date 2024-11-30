@@ -7,7 +7,7 @@ PROJECT(PathTracer
     LANGUAGES C CXX
 )
 
-SET(CMAKE_CXX_STANDARD 23 REQUIRED)
+SET(CMAKE_CXX_STANDARD 20 REQUIRED)
 
 # Third Party Libraries.
 ADD_SUBDIRECTORY(External)
@@ -28,24 +28,24 @@ ENDIF()
 MESSAGE(STATUS "CMAKE_C_COMPILER_ID: ${CMAKE_C_COMPILER_ID}")
 MESSAGE(STATUS "CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 
-IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+IF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "GNU")
     IF(CMAKE_BUILD_TYPE MATCHES "Debug")
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-          "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
+            "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
         )
     ELSE()
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-          "-O3" "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
+            "-O3" "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
         )
     ENDIF()
-ELSEIF(CMAKE_CXX_COMPILER_IR MATCHES "MSVC")
+ELSEIF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
     IF(CMAKE_BUILD_TYPE MATCHES "Debug")
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            # TODO
+            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4"
         )
     ELSE()
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            # TODO
+            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4"
         )
     ENDIF()
 ELSE()
@@ -89,6 +89,7 @@ TARGET_SOURCES(PathTracer PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Camera.cpp
     ${CMAKE_SOURCE_DIR}/Core/Bounds.h
     ${CMAKE_SOURCE_DIR}/Core/Bounds.cpp
+    ${CMAKE_SOURCE_DIR}/cpp.hint
 )
 
 TARGET_LINK_LIBRARIES(PathTracer PRIVATE

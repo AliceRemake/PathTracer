@@ -33,22 +33,22 @@ struct Interval
         return imin == -INF && imax == INF;
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE bool Contain(const double x) const NOEXCEPT
+    NODISCARD FORCE_INLINE bool Contain(const double x) const NOEXCEPT
     {
         return Fle(imin, x) && Fle(x, imax);
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE bool Contain(const Interval& oth) const NOEXCEPT
+    NODISCARD FORCE_INLINE bool Contain(const Interval& oth) const NOEXCEPT
     {
         return Fle(imin, oth.imin) && Fle(oth.imax, imax);
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE bool Surround(const double x) const NOEXCEPT
+    NODISCARD FORCE_INLINE bool Surround(const double x) const NOEXCEPT
     {
         return Flt(imin, x) && Flt(x, imax);
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE bool Surround(const Interval& oth) const NOEXCEPT
+    NODISCARD FORCE_INLINE bool Surround(const Interval& oth) const NOEXCEPT
     {
         return Flt(imin, oth.imin) && Flt(oth.imax, imax);
     }
@@ -69,7 +69,7 @@ struct Interval
         return Fle(lhs.imin, rhs.imax) && Fle(rhs.imin, lhs.imax);
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE static Interval Intersection(const Interval& lhs, const Interval& rhs) NOEXCEPT
+    NODISCARD FORCE_INLINE static Interval Intersection(const Interval& lhs, const Interval& rhs) NOEXCEPT
     {
         if (!OverLap(lhs, rhs)) {return EMPTY;}
         Interval interval

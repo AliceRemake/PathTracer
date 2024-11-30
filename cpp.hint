@@ -1,0 +1,12 @@
+// 提示文件帮助 Visual Studio IDE 解释 Visual C++ 标识符,
+// 如函数和宏的名称。
+// 有关详细信息，请参见 https://go.microsoft.com/fwlink/?linkid=865984
+#define NODISCARD [[nodiscard]]
+#define CONSTEXPR
+#define FORCE_INLINE inline __attribute__((always_inline))
+#define FORCE_INLINE
+#define NOEXCEPT
+#define ASSERT(exp) (void)(exp)
+#define ASSERT(exp) do { if(!(exp)) {DEBUGBREAK(); exit(EXIT_FAILURE);} } while (0)
+#define ASSERT(condition) if (!(condition)) { HERE; cerr << "CONDITION " << #condition << " NOT VERIFIED" << endl; INTERRUPTION(1); }
+#define ASSERT(condition)

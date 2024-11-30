@@ -15,16 +15,26 @@
 
 // TODO: MSVC
 // Ignore stb Warnings.
-#ifdef __GNUC__
+#if defined(__GNUC__)
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#elif defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable:4996)
 #endif
 
 #include <stb_image.h>
 #include <stb_image_write.h>
 
-#ifdef __GNUC__
+#if defined(__GNUC__)
     #pragma GCC diagnostic pop
+#elif defined(__clang__)
+    #pragma clang diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
 #endif
 
 NODISCARD Image Image::From(const char* filename) NOEXCEPT

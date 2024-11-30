@@ -36,12 +36,12 @@ struct Image
         return data.cols();
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE const Eigen::Vector4d* Data() const NOEXCEPT
+    NODISCARD FORCE_INLINE const Eigen::Vector4d* Data() const NOEXCEPT
     {
         return data.array().data();
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE Eigen::Vector4d* Data() NOEXCEPT
+    NODISCARD FORCE_INLINE Eigen::Vector4d* Data() NOEXCEPT
     {
         return data.array().data();
     }
