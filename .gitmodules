@@ -10,3 +10,9 @@
 [submodule "External/eigen"]
 	path = External/eigen
 	url = https://gitlab.com/libeigen/eigen.git
+[submodule "Test/External/doctest"]
+	path = Test/External/doctest
+	url = https://github.com/doctest/doctest.git
+[submodule "External/tinyobjloader"]
+	path = External/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git

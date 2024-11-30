@@ -11,9 +11,22 @@
 
 
 #include <Core/Camera.h>
+#include <Core/Parallel.h>
+#include <Core/Ray.h>
+
+// Ignore tinyxml2 Warnings.
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wtype-limits"
+#endif
+
 #include <tinyxml2.h>
 
-NODISCARD Camera Camera::From(const char* filename) NOEXCEPT
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#endif
+
+NODISCARD Camera Camera::FromXML(const char* filename) NOEXCEPT
 {
     tinyxml2::XMLDocument doc;
     
@@ -25,65 +38,78 @@ NODISCARD Camera Camera::From(const char* filename) NOEXCEPT
         ASSERT(false && "Error Reading XML File.");
     }
 
-    // Read XML Test
-    // const tinyxml2::XMLElement* camera = doc.FirstChildElement("camera");
-    // fmt::printf("%s\n", camera->Name());
-    // fmt::printf("%s\n", camera->Attribute("type"));
-    // fmt::printf("%s\n", camera->Attribute("width"));
-    // fmt::printf("%s\n", camera->Attribute("height"));
-    // fmt::printf("%s\n", camera->Attribute("fovy"));
-    //
-    // const tinyxml2::XMLElement* eye = camera->FirstChildElement("eye");
-    // fmt::printf("%s\n", eye->Name());
-    // fmt::printf("%s\n", eye->Attribute("x"));
-    // fmt::printf("%s\n", eye->Attribute("y"));
-    // fmt::printf("%s\n", eye->Attribute("z"));
-    //
-    // const tinyxml2::XMLElement* lookat = camera->FirstChildElement("lookat");
-    // fmt::printf("%s\n", lookat->Name());
-    // fmt::printf("%s\n", lookat->Attribute("x"));
-    // fmt::printf("%s\n", lookat->Attribute("y"));
-    // fmt::printf("%s\n", lookat->Attribute("z"));
-    //
-    // const tinyxml2::XMLElement* up = camera->FirstChildElement("up");
-    // fmt::printf("%s\n", up->Name());
-    // fmt::printf("%s\n", up->Attribute("x"));
-    // fmt::printf("%s\n", up->Attribute("y"));
-    // fmt::printf("%s\n", up->Attribute("z"));
-    //
-    // fflush(stdout);
+    const tinyxml2::XMLElement* xml_camera = doc.FirstChildElement("camera");         ASSERT(xml_camera != nullptr);
+    const tinyxml2::XMLElement* xml_eye = xml_camera->FirstChildElement("eye");       ASSERT(xml_eye != nullptr);
+    const tinyxml2::XMLElement* xml_lookat = xml_camera->FirstChildElement("lookat"); ASSERT(xml_lookat != nullptr);
+    const tinyxml2::XMLElement* xml_up = xml_camera->FirstChildElement("up");         ASSERT(xml_up != nullptr);
+    const char* xml_height = xml_camera->Attribute("height");                         ASSERT(xml_height != nullptr);
+    const char* xml_width = xml_camera->Attribute("width");                           ASSERT(xml_width != nullptr);
+    ASSERT(strcmp(xml_camera->Attribute("type"), "perspective") == 0 && "Unsupported Camera Type");
 
-    const tinyxml2::XMLElement* camera = doc.FirstChildElement("camera");
-    const tinyxml2::XMLElement* eye = camera->FirstChildElement("eye");
-    const tinyxml2::XMLElement* lookat = camera->FirstChildElement("lookat");
-    const tinyxml2::XMLElement* up = camera->FirstChildElement("up");
-
-    ASSERT(strcmp(camera->Attribute("type"), "perspective") == 0 && "Unsupported Camera Type");
-    
-    return Camera
+    Eigen::Vector3d eye = Eigen::Vector3d
     {
-        .type = CAMERA_TYPE_PERSPECTIVE,
-        .width = (int)std::strtoll(camera->Attribute("width"), nullptr, 10),
-        .height = (int)std::strtoll(camera->Attribute("height"), nullptr, 10),
-        .fovy = (float)std::strtold(camera->Attribute("fovy"), nullptr),
-        .eye = Eigen::Vector3f
-        {
-            (float)std::strtold(eye->Attribute("x"), nullptr),
-            (float)std::strtold(eye->Attribute("y"), nullptr),
-            (float)std::strtold(eye->Attribute("z"), nullptr),
-        },
-        .lookat = Eigen::Vector3f
-        {
-            (float)std::strtold(lookat->Attribute("x"), nullptr),
-            (float)std::strtold(lookat->Attribute("y"), nullptr),
-            (float)std::strtold(lookat->Attribute("z"), nullptr),
-        },
-        .up = Eigen::Vector3f
-        {
-            (float)std::strtold(up->Attribute("x"), nullptr),
-            (float)std::strtold(up->Attribute("y"), nullptr),
-            (float)std::strtold(up->Attribute("z"), nullptr),
-        },
+        (double)std::strtold(xml_eye->Attribute("x"), nullptr),
+        (double)std::strtold(xml_eye->Attribute("y"), nullptr),
+        (double)std::strtold(xml_eye->Attribute("z"), nullptr),
     };
+
+    Eigen::Vector3d lookat = Eigen::Vector3d
+    {
+        (double)std::strtold(xml_lookat->Attribute("x"), nullptr),
+        (double)std::strtold(xml_lookat->Attribute("y"), nullptr),
+        (double)std::strtold(xml_lookat->Attribute("z"), nullptr),
+    };
+
+    Eigen::Vector3d up = Eigen::Vector3d
+    {
+        (double)std::strtold(xml_up->Attribute("x"), nullptr),
+        (double)std::strtold(xml_up->Attribute("y"), nullptr),
+        (double)std::strtold(xml_up->Attribute("z"), nullptr),
+    };
+
+    const Eigen::Index height = std::strtoll(xml_height, nullptr, 10);
+    const Eigen::Index width = std::strtoll(xml_width, nullptr, 10);
+
+    Camera camera = {};
+    camera.type = CAMERA_TYPE_PERSPECTIVE;
+    camera.near = 1.0;
+    camera.far = 100.0;
+    camera.fovy = ToRadians((double)std::strtold(xml_camera->Attribute("fovy"), nullptr));
+    camera.aspect = (double)width / (double)height;
+    camera.origin = eye;
+    camera.direction = (lookat - eye).normalized();
+    camera.right = camera.direction.cross(up).normalized();
+    camera.up = camera.right.cross(camera.direction).normalized();
+
+    return camera;
 }
   
+void Camera::Render(const Scene& scene) NOEXCEPT
+{
+    const double height  = near * std::tan(fovy / 2.0) * 2.0;
+    const double width = height * aspect;
+
+    const double pixel_width = width / (double)film.Width();
+    const double start_x = -(width + pixel_width) / 2.0;
+    const double start_z = (height - pixel_width) / 2.0;
+
+    Parallel::For(0, film.Height(), THREAD_POOL.ThreadNumber(),
+        [this, start_x, start_z, pixel_width, &scene](size_t thread_begin, size_t thread_end)
+        {
+            double z = start_z - thread_begin * pixel_width;
+            for (Eigen::Index row = thread_begin; row < (Eigen::Index)thread_end; ++row, z -= pixel_width)
+            {
+                double x = start_x;
+                for (Eigen::Index col = 0; col < film.Width(); ++col, x += pixel_width)
+                {
+                    const Ray ray
+                    {
+                        .origin = origin,
+                        .direction = (x * right + near * direction + z * up).normalized(),
+                    };
+                    film(row, col) = Ray::RayCast(ray, scene);
+                }
+            }
+        }
+    );
+}
