@@ -9,9 +9,13 @@ PROJECT(PathTracer
 
 SET(CMAKE_CXX_STANDARD 23 REQUIRED)
 
+# Third Party Libraries.
 ADD_SUBDIRECTORY(External)
 
-ADD_SUBDIRECTORY(Test)
+# Unit Tests.
+IF(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    ADD_SUBDIRECTORY(Test)
+ENDIF()
 
 ADD_EXECUTABLE(PathTracer)
 
