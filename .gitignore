@@ -1,3 +1,4 @@
+# github CMake Template
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
@@ -10,5 +11,18 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+# command line
+build
+Build
+# vscode
+.vscode
+# CLion
+.idea
 cmake-*
-Scene
+# Visual Studio
+.vs
+out
+CMakeSettings.json
+# Input/Output
+Input
+Output

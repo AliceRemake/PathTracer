@@ -14,6 +14,8 @@
 #define CAMERA_H
 
 #include <Core/Common.h>
+#include <Core/Image.h>
+#include <Core/Scene.h>
 
 struct Camera
 {
@@ -23,14 +25,19 @@ struct Camera
     };
 
     CameraType type;
-    int width;
-    int height;
-    float fovy;
-    Eigen::Vector3f eye;
-    Eigen::Vector3f lookat;
-    Eigen::Vector3f up;
+    double near;
+    double far;
+    double fovy;
+    double aspect;
+    Eigen::Vector3d origin;
+    Eigen::Vector3d direction; // Normalized.
+    Eigen::Vector3d right;     // Normalized.
+    Eigen::Vector3d up;        // Normalized.
+    Image film;
 
-    NODISCARD static Camera From(const char* filename) NOEXCEPT;
+    NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
+
+    void Render(const Scene& scene) NOEXCEPT;
 };
 
 #endif //CAMERA_H

@@ -1,14 +1,33 @@
+SET(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+
 ADD_SUBDIRECTORY(fmt)
-
-ADD_LIBRARY(stb INTERFACE)
-
-TARGET_SOURCES(stb INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image_write.h
-)
-
-ADD_LIBRARY(stb::stb ALIAS stb)
-
+ADD_SUBDIRECTORY(eigen)
 ADD_SUBDIRECTORY(tinyxml2)
 
-ADD_SUBDIRECTORY(eigen)
+ADD_LIBRARY(stb INTERFACE)
+TARGET_COMPILE_DEFINITIONS(stb INTERFACE
+    STB_IMAGE_IMPLEMENTATION
+    STB_IMAGE_WRITE_IMPLEMENTATION
+)
+TARGET_SOURCES(stb INTERFACE
+    stb/stb_image.h
+    stb/stb_image_write.h
+)
+TARGET_INCLUDE_DIRECTORIES(stb INTERFACE
+    stb
+)
+ADD_LIBRARY(stb::stb ALIAS stb)
+
+
+ADD_LIBRARY(tinyobjloader INTERFACE)
+TARGET_COMPILE_DEFINITIONS(tinyobjloader INTERFACE
+    TINYOBJLOADER_USE_DOUBLE
+)
+TARGET_SOURCES(tinyobjloader INTERFACE
+    tinyobjloader/tiny_obj_loader.h
+    tinyobjloader/tiny_obj_loader.cc
+)
+TARGET_INCLUDE_DIRECTORIES(tinyobjloader INTERFACE
+    tinyobjloader
+)
+ADD_LIBRARY(tinyobjloader::tinyobjloader ALIAS tinyobjloader)

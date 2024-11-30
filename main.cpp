@@ -11,19 +11,39 @@
 
 
 #include <Core/Common.h>
-#include <Core/Debug.h>
+#include <Core/Loader.h>
+#include <Core/Scene.h>
 #include <Core/Camera.h>
 
 int main()
 {
-    #ifndef NDEBUG
-    Camera camera = Camera::From((FS::path(STR(CMAKE_SOURCE_DIR)) / "Scene" / "cornell-box" / "cornell-box.xml").string().c_str());
-    fmt::printf("Camera Width : %d\n", camera.width);
-    fmt::printf("Camera Height: %d\n", camera.height);
-    fmt::printf("Camera Fovy  : %.3f\n", camera.fovy);
-    fmt::printf("Camera Eye   : "); Debug::Dump(stdout, camera.eye);
-    fmt::printf("Camera LookAt: "); Debug::Dump(stdout, camera.lookat);
-    fmt::printf("Camera Up    : "); Debug::Dump(stdout, camera.up);
-    #endif
+    const Scene scene;
+    // scene.objects.emplace_back(MakeRef<Mesh>(Loader::LoadOBJ((
+    //     FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "CornellBox" / "CornellBox-Original.obj"
+    // ).string().c_str())));
+
+    Camera camera
+    {
+        .type = Camera::CAMERA_TYPE_PERSPECTIVE,
+        .near = 1.0,
+        .far = 100.0,
+        .fovy = ToRadians(75.0),
+        .aspect = (double)800 / (double)600,
+        .origin = Eigen::Vector3d{0.0, 0.0, 0.0},
+        .direction = Eigen::Vector3d{0.0, 0.0, -1.0},
+        .right = Eigen::Vector3d{1.0, 0.0, 0.0},
+        .up = Eigen::Vector3d{0.0, 1.0, 0.0},
+        .film = Image(600, 800),
+    };
+
+    camera.Render(scene);
+
+    const bool result = Image::ToPNG
+    (
+        camera.film,
+        (FS::path(STR(CMAKE_SOURCE_DIR)) / "Output" / "Output.png").string().c_str()
+    );
+    ASSERT(result);
+
     return 0;
 }
