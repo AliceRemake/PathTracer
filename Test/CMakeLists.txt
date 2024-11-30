@@ -6,26 +6,14 @@ ADD_COMPILE_DEFINITIONS(
     CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
 )
 
-IF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "GNU")
-    IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-        ADD_COMPILE_OPTIONS(
-          "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
-        )
-    ELSE()
-        ADD_COMPILE_OPTIONS(
-          "-O3" "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
-        )
-    ENDIF()
-ELSEIF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT MATCHES "MSVC")
-    IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-        ADD_COMPILE_OPTIONS(
-            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/GR-" "/W4"
-        )
-    ELSE()
-        ADD_COMPILE_OPTIONS(
-            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/GR-" "/W4"
-        )
-    ENDIF()
+IF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
+    ADD_COMPILE_OPTIONS(
+      "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
+    )
+ELSEIF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    ADD_COMPILE_OPTIONS(
+        "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/GR-" "/W4"
+    )
 ELSE()
     MESSAGE(FATAL_ERROR "Unsupported CXX Compiler: ${CMAKE_CXX_COMPILER_ID}")
 ENDIF()
