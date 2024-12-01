@@ -13,7 +13,6 @@
 #include <Core/Image.h>
 #include <Core/Parallel.h>
 
-// TODO: MSVC
 // Ignore stb Warnings.
 #if defined(__GNUC__)
     #pragma GCC diagnostic push

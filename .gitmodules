@@ -7,9 +7,6 @@
 [submodule "External/tinyxml2"]
 	path = External/tinyxml2
 	url = https://github.com/leethomason/tinyxml2.git
-[submodule "External/eigen"]
-	path = External/eigen
-	url = https://gitlab.com/libeigen/eigen.git
 [submodule "Test/External/doctest"]
 	path = Test/External/doctest
 	url = https://github.com/doctest/doctest.git

@@ -45,11 +45,11 @@ IF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
 ELSEIF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4"
+            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/WX" "/Zc:__cplusplus"
         )
     ELSE()
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4"
+            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/WX" "/Zc:__cplusplus"
         )
     ENDIF()
 ELSE()
