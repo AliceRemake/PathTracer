@@ -1,5 +1,11 @@
 # PathTracer
 
+## Main Reference
+
+Ray Tracing in One Weekend - The Book Series
+
+[[github](https://github.com/RayTracing/raytracing.github.io)][[website](https://raytracing.github.io/)]
+
 ## Build With CMake
 
 ### MinGW

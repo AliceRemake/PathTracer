@@ -24,7 +24,7 @@ struct Scene final : Hittable
 
     std::vector<Ref<Hittable>> objects;
 
-    NODISCARD bool Hit(const Ray &ray, const Interval &interval, HitRecord &record) NOEXCEPT OVERRIDE;
+    NODISCARD bool Hit(const Ray &ray, const Interval &interval, HitRecord &record) const NOEXCEPT OVERRIDE;
 };
 
 #endif //SCENE_H

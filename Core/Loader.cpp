@@ -39,8 +39,9 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
     ASSERT(attrib.vertices.size() % 3 == 0);
     mesh.vertices.resize(attrib.vertices.size() / 3);
     Parallel::For(0, mesh.vertices.size(), THREAD_POOL.ThreadNumber(),
-        [&mesh, &attrib](size_t thread_begin, size_t thread_end)
+        [&mesh, &attrib](size_t thread_id, size_t thread_begin, size_t thread_end)
         {
+            (void)thread_id;
             for (size_t i = thread_begin, j = 3 * thread_begin; i < thread_end; ++i, j += 3)
             {
                 auto& vertex = mesh.vertices[i];
@@ -54,8 +55,9 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
     ASSERT(attrib.normals.size() % 3 == 0);
     mesh.normals.resize(attrib.normals.size() / 3);
     Parallel::For(0, mesh.normals.size(), THREAD_POOL.ThreadNumber(),
-        [&mesh, &attrib](size_t thread_begin, size_t thread_end)
+        [&mesh, &attrib](size_t thread_id, size_t thread_begin, size_t thread_end)
         {
+            (void)thread_id;
             for (size_t i = thread_begin, j = 3 * thread_begin; i < thread_end; ++i, j += 3)
             {
                 auto& normal = mesh.normals[i];
@@ -69,8 +71,9 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
     ASSERT(attrib.texcoords.size() % 2 == 0);
     mesh.texcoords.resize(attrib.texcoords.size() / 2);
     Parallel::For(0, mesh.texcoords.size(), THREAD_POOL.ThreadNumber(),
-        [&mesh, &attrib](size_t thread_begin, size_t thread_end)
+        [&mesh, &attrib](size_t thread_id, size_t thread_begin, size_t thread_end)
         {
+            (void)thread_id;
             for (size_t i = thread_begin, j = (thread_begin << 1); i < thread_end; ++i, j += 2)
             {
                 auto& texcoord = mesh.texcoords[i];
@@ -83,12 +86,13 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
     const auto& materials = reader.GetMaterials();
     mesh.materials.resize(materials.size());
     Parallel::For(0, mesh.materials.size(), THREAD_POOL.ThreadNumber(),
-        [&mesh, &materials](size_t thread_begin, size_t thread_end)
+        [&mesh, &materials](size_t thread_id, size_t thread_begin, size_t thread_end)
         {
+            (void)thread_id;
             for (size_t i = thread_begin; i < thread_end; ++i)
             {
                 const auto& t_material = materials[i];
-                mesh.materials[i] = std::make_unique<Material>();
+                mesh.materials[i] = MakeRef<Material>();
                 const auto& material = mesh.materials[i];
                 material->name = t_material.name;
                 material->illum = t_material.illum;
@@ -127,13 +131,14 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
 
         t_shape.triangles.resize(shape.mesh.indices.size() / 3);
         Parallel::For(0, t_shape.triangles.size(), THREAD_POOL.ThreadNumber(),
-            [&t_shape, &shape](size_t thread_begin, size_t thread_end)
+            [&t_shape, &shape](size_t thread_id, size_t thread_begin, size_t thread_end)
             {
+                (void)thread_id;
                 for (size_t i = thread_begin, j = 3 * thread_begin; i < thread_end; ++i, j+=3)
                 {
                     for (size_t k = 0; k < 3; ++k)
                     {
-                        auto& triangle_v = t_shape.triangles[i].v[k];
+                        auto& triangle_v = t_shape.triangles[i].point[k];
                         const auto& mesh_index = shape.mesh.indices[j + k];
                         triangle_v.vertex = mesh_index.vertex_index;
                         triangle_v.normal = mesh_index.normal_index;

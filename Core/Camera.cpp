@@ -11,6 +11,7 @@
 
 
 #include <Core/Camera.h>
+#include <Core/RNG.h>
 #include <Core/Parallel.h>
 #include <Core/Ray.h>
 
@@ -84,30 +85,37 @@ NODISCARD Camera Camera::FromXML(const char* filename) NOEXCEPT
     return camera;
 }
   
-void Camera::Render(const Scene& scene) NOEXCEPT
+void Camera::Render(const Scene& scene, const size_t spp) NOEXCEPT
 {
     const double height  = near * std::tan(fovy / 2.0) * 2.0;
     const double width = height * aspect;
 
     const double pixel_width = width / (double)film.Width();
+    const double normalization_factor = 1.0 / spp;
     const double start_x = -(width + pixel_width) / 2.0;
     const double start_z = (height - pixel_width) / 2.0;
 
     Parallel::For(0, film.Height(), THREAD_POOL.ThreadNumber(),
-        [this, start_x, start_z, pixel_width, &scene](size_t thread_begin, size_t thread_end)
+        [this, &scene, spp, pixel_width, normalization_factor, start_x, start_z](size_t thread_id, size_t thread_begin, size_t thread_end)
         {
-            double z = start_z - thread_begin * pixel_width;
-            for (Eigen::Index row = thread_begin; row < (Eigen::Index)thread_end; ++row, z -= pixel_width)
+            auto dist = RNG::UniformDist<double>(-pixel_width / 2, pixel_width / 2);
+            RNG::Seed<double>(thread_id, 0.0);
+            double z = start_z - (double)thread_begin * pixel_width;
+            for (Eigen::Index row = (Eigen::Index)thread_begin; row < (Eigen::Index)thread_end; ++row, z -= pixel_width)
             {
                 double x = start_x;
                 for (Eigen::Index col = 0; col < film.Width(); ++col, x += pixel_width)
                 {
-                    const Ray ray
+                    Eigen::Vector4d color = Eigen::Vector4d{0.0, 0.0, 0.0, 0.0};
+                    for (size_t i = 0; i < spp; ++i)
                     {
-                        .origin = origin,
-                        .direction = (x * right + near * direction + z * up).normalized(),
-                    };
-                    film(row, col) = Ray::RayCast(ray, scene);
+                        color += Ray::RayCast(Ray
+                        {
+                            .origin = origin,
+                            .direction = ((x + RNG::Rand(thread_id, dist)) * right + near * direction + (z + RNG::Rand(thread_id, dist)) * up).normalized(),
+                        }, scene);
+                    }
+                    film(row, col) = normalization_factor * color;
                 }
             }
         }

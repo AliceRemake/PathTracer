@@ -15,7 +15,7 @@
 #include <Core/Interval.h>
 
 // Ref: https://iquilezles.org/articles/intersectors/
-NODISCARD bool Sphere::Hit(const Ray &ray, const Interval& interval, HitRecord &record) NOEXCEPT
+NODISCARD bool Sphere::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
 {
     const Eigen::Vector3d oc = ray.origin - center;
     const double b = oc.dot(ray.direction);

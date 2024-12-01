@@ -22,9 +22,9 @@ struct Ray;
 struct HitRecord
 {
     double t;
+    Ref<Material> material;
     Eigen::Vector3d hit_point;
     Eigen::Vector3d hit_normal;
-    Material* material;
 };
 
 struct Hittable
@@ -33,7 +33,6 @@ protected:
     enum HittableType
     {
         HITTABLE_TYPE_SPHERE,
-        HITTABLE_TYPE_MESH_TRIANGLE,
         HITTABLE_TYPE_MESH,
         HITTABLE_TYPE_SCENE,
     };
@@ -46,7 +45,7 @@ public:
     NODISCARD explicit Hittable(HittableType kind) NOEXCEPT : kind(kind) {}
     virtual ~Hittable() NOEXCEPT = default;
 
-    NODISCARD virtual bool Hit(const Ray& ray, const Interval& interval, HitRecord& record) NOEXCEPT = 0;
+    NODISCARD virtual bool Hit(const Ray& ray, const Interval& interval, HitRecord& record) const NOEXCEPT = 0;
 };
 
 #endif //HITTABLE_H

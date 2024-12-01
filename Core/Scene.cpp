@@ -12,7 +12,7 @@
 
 #include <Core/Scene.h>
 
-NODISCARD bool Scene::Hit(const Ray &ray, const Interval &interval, HitRecord &record) NOEXCEPT
+NODISCARD bool Scene::Hit(const Ray &ray, const Interval &interval, HitRecord &record) const NOEXCEPT
 {
     record.t = INF;
     for (const auto& object : objects)

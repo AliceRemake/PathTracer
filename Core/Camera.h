@@ -37,7 +37,7 @@ struct Camera
 
     NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
 
-    void Render(const Scene& scene) NOEXCEPT;
+    void Render(const Scene& scene, size_t spp) NOEXCEPT;
 };
 
 #endif //CAMERA_H

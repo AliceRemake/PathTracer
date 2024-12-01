@@ -21,18 +21,32 @@
 ///     RNG::Rand(dist);                          // Generate Random Number.
 struct RNG
 {
-    static std::mt19937 rng;
+private:
+    static std::vector<std::mt19937> rngs;
 
+public:
     template<typename T>
     FORCE_INLINE static void Seed(const T& seed) NOEXCEPT
     {
-        rng.seed(seed);
+        rngs[0].seed(seed);
     }
 
     template<typename T>
     NODISCARD FORCE_INLINE static typename T::result_type Rand(T& dist) NOEXCEPT
     {
-        return dist(rng);
+        return dist(rngs[0]);
+    }
+
+    template<typename T>
+    FORCE_INLINE static void Seed(const size_t thread_id, const T& seed) NOEXCEPT
+    {
+        rngs[thread_id].seed(seed);
+    }
+
+    template<typename T>
+    NODISCARD FORCE_INLINE static typename T::result_type Rand(const size_t thread_id, T& dist) NOEXCEPT
+    {
+        return dist(rngs[thread_id]);
     }
 
     template<typename T, std::enable_if_t<std::is_integral_v<T>, bool> = true>

@@ -15,19 +15,20 @@
 
 #include <Core/Common.h>
 #include <Core/Hittable.h>
-#include <Core/Material.h>
 
 struct Sphere final : Hittable
 {
     NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_TYPE_SPHERE;}
 
-    NODISCARD explicit Sphere() NOEXCEPT : Hittable(HITTABLE_TYPE_SPHERE), radius(), material() {}
+    NODISCARD explicit Sphere() NOEXCEPT : Hittable(HITTABLE_TYPE_SPHERE), radius() {}
+    NODISCARD Sphere(const Eigen::Vector3d& center, const double radius, Ref<Material> material) NOEXCEPT
+    : Hittable(HITTABLE_TYPE_SPHERE), center(center), radius(radius), material(material) {}
 
     Eigen::Vector3d center;
     double radius;
-    Material* material;
+    Ref<Material> material;
 
-    NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) NOEXCEPT OVERRIDE;
+    NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
 };
 
 #endif //PRIMITIVE_H
