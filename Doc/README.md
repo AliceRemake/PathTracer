@@ -6,9 +6,6 @@
 
 ## Antialiasing
 
-| without antialiasing                      | with antialiasing                      |
-|-------------------------------------------|----------------------------------------|
-| ![](Image/OutputWithoutAntialiasing.png)  | ![](Image/OutputWithAntialiasing.png)  |
-
-
-
+| without antialiasing                      | with antialiasing (spp = 32)          |
+|-------------------------------------------|---------------------------------------|
+| ![](Image/OutputWithoutAntialiasing.png)  | ![](Image/OutputWithAntialiasing.png) |
