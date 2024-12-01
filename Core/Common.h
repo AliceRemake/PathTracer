@@ -18,8 +18,18 @@
 
 #include <fmt/format.h>
 #include <fmt/printf.h>
+
+#if defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable:5054)
+#endif
+
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
+#if defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 
 #include <cstdio>
 #include <cstdlib>
