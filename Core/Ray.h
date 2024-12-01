@@ -14,8 +14,8 @@
 #define RAY_H
 
 #include <Core/Common.h>
-#include <Core/Scene.h>
-#include <Core/Debug.h>
+
+struct Scene;
 
 struct Ray
 {
@@ -27,12 +27,7 @@ struct Ray
         return origin + t * direction;
     }
 
-    NODISCARD static Eigen::Vector4d RayCast(const Ray& ray, const Scene& scene) NOEXCEPT
-    {
-        Debug::Unuse(scene);
-        const double u = std::acos(ray.direction.y()) / PI;
-        return (1.0 - u) * Eigen::Vector4d{0.5, 0.7, 1.0, 1.0} + u * Eigen::Vector4d{1.0, 1.0, 1.0, 1.0};
-    }
+    NODISCARD static Eigen::Vector3d RayCast(const Ray& ray, const Scene& scene, size_t bounces) NOEXCEPT;
 };
 
 #endif //RAY_H

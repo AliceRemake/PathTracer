@@ -41,21 +41,21 @@ MESSAGE(STATUS "CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 IF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native" "-std=c++20"
+            "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
         )
     ELSE()
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "-O3" "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native" "-std=c++20"
+            "-O3" "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
         )
     ENDIF()
 ELSEIF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/WX" "/Zc:__cplusplus" "/std:c++20"
+            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/WX" "/Zc:__cplusplus"
         )
     ELSE()
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/WX" "/Zc:__cplusplus" "/std:c++20"
+            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/WX" "/Zc:__cplusplus"
         )
     ENDIF()
 ELSE()
@@ -98,6 +98,8 @@ TARGET_SOURCES(PathTracer PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Ray.cpp
     ${CMAKE_SOURCE_DIR}/Core/Camera.h
     ${CMAKE_SOURCE_DIR}/Core/Camera.cpp
+    ${CMAKE_SOURCE_DIR}/Core/Renderer.h
+    ${CMAKE_SOURCE_DIR}/Core/Renderer.cpp
     ${CMAKE_SOURCE_DIR}/Core/Bounds.h
     ${CMAKE_SOURCE_DIR}/Core/Bounds.cpp
 )

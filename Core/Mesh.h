@@ -32,7 +32,7 @@ struct Mesh final : Hittable
 
     struct Triangle final // Three Vertex + One Material.
     {
-        Index v[3];
+        Index point[3];
         Eigen::Index material;
 
         NODISCARD bool Hit(const Mesh& mesh, const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT;
@@ -49,11 +49,11 @@ struct Mesh final : Hittable
     std::vector<Eigen::Vector3d> vertices;
     std::vector<Eigen::Vector3d> normals;
     std::vector<Eigen::Vector2d> texcoords;
-    std::vector<std::unique_ptr<Material>> materials;
+    std::vector<Ref<Material>> materials;
 
     std::vector<Shape> shapes;
 
-    NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) NOEXCEPT OVERRIDE;
+    NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
 };
 
 #endif //MESH_H

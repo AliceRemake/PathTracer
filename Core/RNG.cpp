@@ -12,4 +12,4 @@
 
 #include <Core/RNG.h>
 
-std::mt19937 RNG::rng;
+THREAD_LOCAL std::mt19937 RNG::rng;
