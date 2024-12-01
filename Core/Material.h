@@ -14,44 +14,59 @@
 #define MATERIAL_H
 
 #include <Core/Common.h>
+#include <Core/Hittable.h>
 
-// illum
-// 0		Color on and Ambient off
-// 1		Color on and Ambient on
-// 2		Highlight on
-// 3		Reflection on and Ray trace on
-// 4		Transparency: Glass on
-//          Reflection: Ray trace on
-// 5		Reflection: Fresnel on and Ray trace on
-// 6		Transparency: Refraction on
-//          Reflection: Fresnel off and Ray trace on
-// 7		Transparency: Refraction on
-//          Reflection: Fresnel on and Ray trace on
-// 8		Reflection on and Ray trace off
-// 9		Transparency: Glass on
-//          Reflection: Ray trace off
-// 10		Casts shadows onto invisible surfaces
-// Color
-// Ambient
-// Highlight
-// Reflection
-// Refraction
-// Ray Trace
-// Glass
-// Fresnel
+struct Ray;
+
 struct Material
 {
-	std::string name;
-    unsigned illum;
-    double ns; // Specular Highlights.
-    double ni; // Index Of Refraction.
-    Eigen::Vector3d ka; // Ambient.
-    Eigen::Vector3d kd; // Diffuse.
-    Eigen::Vector3d ks; // Specular.
-    Eigen::Vector3d tf; // Transmission.
-    Eigen::Vector3d ke; // Emission.
+protected:
+    enum MaterialType
+    {
+        MATERIAL_TYPE_BASIC,
+        MATERIAL_TYPE_LAMBERT,
+        MATERIAL_TYPE_METAL,
+        MATERIAL_TYPE_DIELECTRIC,
+    };
 
-    // TODO Texture.
+    const MaterialType kind;
+
+public:
+    NODISCARD CONSTEXPR FORCE_INLINE MaterialType Kind() const NOEXCEPT {return kind;}
+
+    NODISCARD explicit Material(const MaterialType kind) NOEXCEPT : kind(kind) {}
+    virtual ~Material() NOEXCEPT = default;
+
+    NODISCARD virtual Ray Scatter(const Ray& ray, const HitRecord& record) const NOEXCEPT = 0;
+    NODISCARD virtual Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT = 0;
+};
+
+struct BasicMaterial final : Material
+{
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_BASIC;}
+
+    NODISCARD explicit BasicMaterial() NOEXCEPT : Material(MATERIAL_TYPE_BASIC) {}
+    NODISCARD explicit BasicMaterial(const Eigen::Vector3d& diffuse) NOEXCEPT
+    : Material(MATERIAL_TYPE_BASIC), diffuse(diffuse) {}
+
+    Eigen::Vector3d diffuse;
+
+    NODISCARD Ray Scatter(const Ray &ray, const HitRecord &record) const NOEXCEPT OVERRIDE;
+    NODISCARD Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT OVERRIDE;
+};
+
+struct LambertMaterial final : Material
+{
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_LAMBERT;}
+
+    NODISCARD explicit LambertMaterial() NOEXCEPT : Material(MATERIAL_TYPE_LAMBERT) {}
+    NODISCARD explicit LambertMaterial(const Eigen::Vector3d& diffuse) NOEXCEPT
+    : Material(MATERIAL_TYPE_LAMBERT), diffuse(diffuse) {}
+
+    Eigen::Vector3d diffuse;
+
+    NODISCARD Ray Scatter(const Ray &ray, const HitRecord &record) const NOEXCEPT OVERRIDE;
+    NODISCARD Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT OVERRIDE;
 };
 
 #endif //MATERIAL_H

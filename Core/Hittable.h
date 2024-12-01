@@ -42,7 +42,7 @@ protected:
 public:
     NODISCARD CONSTEXPR FORCE_INLINE HittableType Kind() const NOEXCEPT {return kind;}
 
-    NODISCARD explicit Hittable(HittableType kind) NOEXCEPT : kind(kind) {}
+    NODISCARD explicit Hittable(const HittableType kind) NOEXCEPT : kind(kind) {}
     virtual ~Hittable() NOEXCEPT = default;
 
     NODISCARD virtual bool Hit(const Ray& ray, const Interval& interval, HitRecord& record) const NOEXCEPT = 0;

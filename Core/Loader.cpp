@@ -39,9 +39,8 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
     ASSERT(attrib.vertices.size() % 3 == 0);
     mesh.vertices.resize(attrib.vertices.size() / 3);
     Parallel::For(0, mesh.vertices.size(), THREAD_POOL.ThreadNumber(),
-        [&mesh, &attrib](size_t thread_id, size_t thread_begin, size_t thread_end)
+        [&mesh, &attrib](size_t thread_begin, size_t thread_end)
         {
-            (void)thread_id;
             for (size_t i = thread_begin, j = 3 * thread_begin; i < thread_end; ++i, j += 3)
             {
                 auto& vertex = mesh.vertices[i];
@@ -55,9 +54,8 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
     ASSERT(attrib.normals.size() % 3 == 0);
     mesh.normals.resize(attrib.normals.size() / 3);
     Parallel::For(0, mesh.normals.size(), THREAD_POOL.ThreadNumber(),
-        [&mesh, &attrib](size_t thread_id, size_t thread_begin, size_t thread_end)
+        [&mesh, &attrib](size_t thread_begin, size_t thread_end)
         {
-            (void)thread_id;
             for (size_t i = thread_begin, j = 3 * thread_begin; i < thread_end; ++i, j += 3)
             {
                 auto& normal = mesh.normals[i];
@@ -71,9 +69,8 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
     ASSERT(attrib.texcoords.size() % 2 == 0);
     mesh.texcoords.resize(attrib.texcoords.size() / 2);
     Parallel::For(0, mesh.texcoords.size(), THREAD_POOL.ThreadNumber(),
-        [&mesh, &attrib](size_t thread_id, size_t thread_begin, size_t thread_end)
+        [&mesh, &attrib](size_t thread_begin, size_t thread_end)
         {
-            (void)thread_id;
             for (size_t i = thread_begin, j = (thread_begin << 1); i < thread_end; ++i, j += 2)
             {
                 auto& texcoord = mesh.texcoords[i];
@@ -83,39 +80,39 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
         }
     );
 
-    const auto& materials = reader.GetMaterials();
-    mesh.materials.resize(materials.size());
-    Parallel::For(0, mesh.materials.size(), THREAD_POOL.ThreadNumber(),
-        [&mesh, &materials](size_t thread_id, size_t thread_begin, size_t thread_end)
-        {
-            (void)thread_id;
-            for (size_t i = thread_begin; i < thread_end; ++i)
-            {
-                const auto& t_material = materials[i];
-                mesh.materials[i] = MakeRef<Material>();
-                const auto& material = mesh.materials[i];
-                material->name = t_material.name;
-                material->illum = t_material.illum;
-                material->ns = t_material.shininess;
-                material->ni = t_material.ior;
-                material->ka.x() = t_material.ambient[0];
-                material->ka.y() = t_material.ambient[1];
-                material->ka.z() = t_material.ambient[2];
-                material->kd.x() = t_material.diffuse[0];
-                material->kd.y() = t_material.diffuse[1];
-                material->kd.z() = t_material.diffuse[2];
-                material->ks.x() = t_material.specular[0];
-                material->ks.y() = t_material.specular[1];
-                material->ks.z() = t_material.specular[2];
-                material->tf.x() = t_material.transmittance[0];
-                material->tf.y() = t_material.transmittance[1];
-                material->tf.z() = t_material.transmittance[2];
-                material->ke.x() = t_material.emission[0];
-                material->ke.y() = t_material.emission[1];
-                material->ke.z() = t_material.emission[2];
-            }
-        }
-    );
+    // const auto& materials = reader.GetMaterials();
+    // mesh.materials.resize(materials.size());
+    // Parallel::For(0, mesh.materials.size(), THREAD_POOL.ThreadNumber(),
+    //     [&mesh, &materials](size_t thread_id, size_t thread_begin, size_t thread_end)
+    //     {
+    //         (void)thread_id;
+    //         for (size_t i = thread_begin; i < thread_end; ++i)
+    //         {
+    //             const auto& t_material = materials[i];
+    //             mesh.materials[i] = MakeRef<Material>();
+    //             const auto& material = mesh.materials[i];
+    //             material->name = t_material.name;
+    //             material->illum = t_material.illum;
+    //             material->ns = t_material.shininess;
+    //             material->ni = t_material.ior;
+    //             material->ka.x() = t_material.ambient[0];
+    //             material->ka.y() = t_material.ambient[1];
+    //             material->ka.z() = t_material.ambient[2];
+    //             material->kd.x() = t_material.diffuse[0];
+    //             material->kd.y() = t_material.diffuse[1];
+    //             material->kd.z() = t_material.diffuse[2];
+    //             material->ks.x() = t_material.specular[0];
+    //             material->ks.y() = t_material.specular[1];
+    //             material->ks.z() = t_material.specular[2];
+    //             material->tf.x() = t_material.transmittance[0];
+    //             material->tf.y() = t_material.transmittance[1];
+    //             material->tf.z() = t_material.transmittance[2];
+    //             material->ke.x() = t_material.emission[0];
+    //             material->ke.y() = t_material.emission[1];
+    //             material->ke.z() = t_material.emission[2];
+    //         }
+    //     }
+    // );
 
     const auto& shapes = reader.GetShapes();
     mesh.shapes.reserve(shapes.size());
@@ -131,9 +128,8 @@ NODISCARD Mesh Loader::LoadOBJ(const char* filename) NOEXCEPT
 
         t_shape.triangles.resize(shape.mesh.indices.size() / 3);
         Parallel::For(0, t_shape.triangles.size(), THREAD_POOL.ThreadNumber(),
-            [&t_shape, &shape](size_t thread_id, size_t thread_begin, size_t thread_end)
+            [&t_shape, &shape](size_t thread_begin, size_t thread_end)
             {
-                (void)thread_id;
                 for (size_t i = thread_begin, j = 3 * thread_begin; i < thread_end; ++i, j+=3)
                 {
                     for (size_t k = 0; k < 3; ++k)

@@ -12,4 +12,4 @@
 
 #include <Core/RNG.h>
 
-std::vector<std::mt19937> RNG::rngs(std::thread::hardware_concurrency());
+THREAD_LOCAL std::mt19937 RNG::rng;

@@ -19,7 +19,7 @@
 #include <fmt/format.h>
 #include <fmt/printf.h>
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
     #pragma warning(push)
     #pragma warning(disable:5054)
 #endif
@@ -27,13 +27,17 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
     #pragma warning(pop)
 #endif
 
+// C Headers
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+#include <csignal>
+
+// CXX Headers
 #include <bitset>
 #include <numeric>
 #include <list>
@@ -56,31 +60,46 @@
 #include <type_traits>
 #include <random>
 
-#define NODISCARD [[nodiscard]]
-#define NOEXCEPT noexcept
-#define OVERRIDE override
-#define CONSTEXPR constexpr
-#if defined(__GNUC__) || defined(__clang__)
+#ifdef __cplusplus
+    #if __cplusplus >= 201103L
+        #define THREAD_LOCAL thread_local // CXX11
+        #define NOEXCEPT noexcept         // CXX11
+        #define CONSTEXPR constexpr       // CXX11
+        #define OVERRIDE override         // CXX11
+    #endif
+    #if __cplusplus >= 201703L
+        #define NODISCARD [[nodiscard]]   // CXX17
+        #define UNUSED [[maybe_unused]]   // CXX17
+    #endif
+    #if __cplusplus >= 202002L
+        #define LIKELY [[likely]]         // CXX20
+        #define UNLIKELY [[unlikely]]     // CXX20
+    #endif
+#endif
+
+#ifdef __GNUC__
     #define FORCE_INLINE inline __attribute__((always_inline))
 #elif defined(_MSC_VER)
     #define FORCE_INLINE __forceinline
 #else
-    #define FORCE_INLINE
+    #define FORCE_INLINE inline
+#endif
+
+#ifdef _MSC_VER
+    #define DEBUGBREAK() __debugbreak()
+#elif defined(SIGTRAP)
+    #define DEBUGBREAK() raise(SIGTRAP)
+#else
+    #define DEBUGBREAK()
 #endif
 
 #define __STR(s) #s // NOLINT(*-reserved-identifier)
 #define STR(s) __STR(s)
 
 #ifdef NDEBUG
-  #define DEBUGBREAK()
-#else
-  #define DEBUGBREAK() __debugbreak()
-#endif
-
-#ifdef NDEBUG
   #define ASSERT(exp) (void)(exp)
 #else
-  #define ASSERT(exp) do { if(!(exp)) {DEBUGBREAK(); exit(EXIT_FAILURE);} } while (0)
+  #define ASSERT(exp) do { if(!(exp)) UNLIKELY {DEBUGBREAK(); exit(EXIT_FAILURE);} } while (0)
 #endif
 
 #define FATAL(msg) do { fmt::fprintf(stderr, msg); exit(EXIT_FAILURE); } while(0)

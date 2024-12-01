@@ -27,7 +27,7 @@ struct Ray
         return origin + t * direction;
     }
 
-    NODISCARD static Eigen::Vector4d RayCast(const Ray& ray, const Scene& scene) NOEXCEPT;
+    NODISCARD static Eigen::Vector3d RayCast(const Ray& ray, const Scene& scene, size_t bounces) NOEXCEPT;
 };
 
 #endif //RAY_H

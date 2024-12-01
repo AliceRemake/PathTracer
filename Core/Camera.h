@@ -14,30 +14,28 @@
 #define CAMERA_H
 
 #include <Core/Common.h>
-#include <Core/Image.h>
-#include <Core/Scene.h>
 
 struct Camera
 {
     enum CameraType
     {
+        CAMERA_TYPE_ORTHOGRAPHIC,
         CAMERA_TYPE_PERSPECTIVE,
     };
 
     CameraType type;
+    Eigen::Index height;
+    Eigen::Index width;
     double near;
     double far;
     double fovy;
     double aspect;
     Eigen::Vector3d origin;
-    Eigen::Vector3d direction; // Normalized.
-    Eigen::Vector3d right;     // Normalized.
-    Eigen::Vector3d up;        // Normalized.
-    Image film;
+    Eigen::Vector3d direction;
+    Eigen::Vector3d right;
+    Eigen::Vector3d up;
 
     NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
-
-    void Render(const Scene& scene, size_t spp) NOEXCEPT;
 };
 
 #endif //CAMERA_H
