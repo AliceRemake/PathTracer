@@ -7,9 +7,15 @@ PROJECT(PathTracer
     LANGUAGES C CXX
 )
 
+IF(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+  message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
+ENDIF()
+
+SET(CMAKE_OBJECT_PATH_MAX 512)
+
 SET(CMAKE_CXX_STANDARD 20 REQUIRED)
 
-IF(NOT CMAKE_BUILD_TYPE)
+IF(NOT DEFINED CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "Release")
 ENDIF()
 
@@ -35,21 +41,21 @@ MESSAGE(STATUS "CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 IF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
+            "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native" "-std=c++20"
         )
     ELSE()
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "-O3" "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native"
+            "-O3" "-fno-exceptions" "-fno-rtti" "-Wall" "-Wextra" "-Werror" "-march=native" "-std=c++20"
         )
     ENDIF()
 ELSEIF(CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4"
+            "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/WX" "/Zc:__cplusplus" "/std:c++20"
         )
     ELSE()
         TARGET_COMPILE_OPTIONS(PathTracer PRIVATE
-            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4"
+            "/Ot" "/D_HAS_EXCEPTIONS=0" "/GR-" "/W4" "/WX" "/Zc:__cplusplus" "/std:c++20"
         )
     ENDIF()
 ELSE()
@@ -62,6 +68,7 @@ TARGET_INCLUDE_DIRECTORIES(PathTracer PRIVATE
 
 TARGET_SOURCES(PathTracer PRIVATE
     ${CMAKE_SOURCE_DIR}/main.cpp
+    ${CMAKE_SOURCE_DIR}/cpp.hint
     ${CMAKE_SOURCE_DIR}/Core/Common.h
     ${CMAKE_SOURCE_DIR}/Core/Debug.h
     ${CMAKE_SOURCE_DIR}/Core/Debug.cpp
@@ -93,7 +100,6 @@ TARGET_SOURCES(PathTracer PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Camera.cpp
     ${CMAKE_SOURCE_DIR}/Core/Bounds.h
     ${CMAKE_SOURCE_DIR}/Core/Bounds.cpp
-    ${CMAKE_SOURCE_DIR}/cpp.hint
 )
 
 TARGET_LINK_LIBRARIES(PathTracer PRIVATE

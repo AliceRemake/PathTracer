@@ -42,6 +42,4 @@ New-Item -Path build -ItemType Directory; Set-Location build
 cmake.exe ..
 ```
 
-After Generate, Double-Click The Solution File With Extension `.sln`.
-
-> NOTE: Configure With `Release` May Have Bugs, Use `RelWithDebInfo` Instead.
+After Generate, Double-Click The Solution File With Extension `.sln` And Build The Target `ALL_BUILD`

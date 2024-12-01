@@ -46,7 +46,7 @@ struct Image
         return data.array().data();
     }
     
-    NODISCARD CONSTEXPR FORCE_INLINE const Eigen::Vector4d& operator()(const Eigen::Index row, const Eigen::Index col) const NOEXCEPT
+    NODISCARD FORCE_INLINE const Eigen::Vector4d& operator()(const Eigen::Index row, const Eigen::Index col) const NOEXCEPT
     {
         return data(row, col);
     }
