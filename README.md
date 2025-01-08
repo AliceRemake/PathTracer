@@ -17,7 +17,7 @@ See Render Results Here: [Gallery](Doc/README.md)
 * [fmt](https://github.com/fmtlib/fmt): A modern formatting library.
 * [stb](https://github.com/nothings/stb): stb single-file public domain libraries for C/C++.
 * [tinyxml2](https://github.com/leethomason/tinyxml2): TinyXML2 is a simple, small, efficient, C++ XML parser that can be easily integrated into other programs.
-* [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader): Tiny but powerful single file wavefront obj loader
+* [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader): Tiny but powerful single file wavefront obj loader.
 * [eigen](https://gitlab.com/libeigen/eigen): Eigen is a C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
 
 ## Software Architecture

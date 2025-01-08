@@ -59,6 +59,7 @@
 #include <future>
 #include <type_traits>
 #include <random>
+#include <utility>
 
 #ifdef __cplusplus
     #if __cplusplus >= 201103L
@@ -167,7 +168,7 @@ NODISCARD CONSTEXPR FORCE_INLINE Ref<T> MakeRef(Args&&... args) NOEXCEPT
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
-CONSTEXPR double EPS = std::numeric_limits<double>::epsilon();
+CONSTEXPR double EPS = 10 * std::numeric_limits<double>::epsilon();
 CONSTEXPR double INF = std::numeric_limits<double>::infinity();
 CONSTEXPR double PI = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679;
 
@@ -229,6 +230,12 @@ NODISCARD FORCE_INLINE bool FIsPositive(const double x) NOEXCEPT
 NODISCARD FORCE_INLINE bool FIsNegative(const double x) NOEXCEPT
 {
     return Flt(x, 0.0);
+}
+
+NODISCARD FORCE_INLINE double SSqrt(const double x) NOEXCEPT
+{
+    if (FIsPositive(x)) { return std::sqrt(x); }
+    return 0;
 }
 
 #endif //COMMON_H

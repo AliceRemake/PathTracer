@@ -21,8 +21,8 @@ struct Sphere final : Hittable
     NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_TYPE_SPHERE;}
 
     NODISCARD explicit Sphere() NOEXCEPT : Hittable(HITTABLE_TYPE_SPHERE), radius() {}
-    NODISCARD Sphere(const Eigen::Vector3d& center, const double radius, Ref<Material> material) NOEXCEPT
-    : Hittable(HITTABLE_TYPE_SPHERE), center(center), radius(radius), material(material) {}
+    NODISCARD Sphere(Eigen::Vector3d  center, const double radius, const Ref<Material>& material) NOEXCEPT
+    : Hittable(HITTABLE_TYPE_SPHERE), center(std::move(center)), radius(radius), material(material) {}
 
     Eigen::Vector3d center;
     double radius;

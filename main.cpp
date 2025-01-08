@@ -22,22 +22,28 @@
 int main()
 {
     Scene scene;
-    scene.objects.emplace_back( // A Sphere.
+    scene.objects.emplace_back( // Center Sphere.
         MakeRef<Sphere>(
-            Eigen::Vector3d{-0.5, 0.0, 0.0}, 0.5,
-            MakeRef<BasicMaterial>(Eigen::Vector3d{0.5, 0.5, 0.5})
+            Eigen::Vector3d{0.0, 0.0, 0.0}, 0.5,
+            MakeRef<DielectricMaterial>(1.5)
         )
     );
-    scene.objects.emplace_back( // A Sphere.
+    scene.objects.emplace_back( // Left Sphere.
         MakeRef<Sphere>(
-            Eigen::Vector3d{0.5, 0.0, 0.0}, 0.5,
-            MakeRef<LambertMaterial>(Eigen::Vector3d{0.5, 0.5, 0.5})
+            Eigen::Vector3d{-1.0, 0.0, 0.0}, 0.5,
+            MakeRef<MetalMaterial>(Eigen::Vector3d{0.8, 0.8, 0.8}, 0.3)
+        )
+    );
+    scene.objects.emplace_back( // Right Sphere.
+        MakeRef<Sphere>(
+            Eigen::Vector3d{1.0, 0.0, 0.0}, 0.5,
+            MakeRef<MetalMaterial>(Eigen::Vector3d{0.8, 0.6, 0.2}, 1.0)
         )
     );
     scene.objects.emplace_back( // The Planet.
         MakeRef<Sphere>(
             Eigen::Vector3d{0.0, -1000.5, 0.0}, 1000.0,
-            MakeRef<LambertMaterial>(Eigen::Vector3d{0.5, 0.5, 0.5})
+            MakeRef<DiffuseLambertMaterial>(Eigen::Vector3d{0.8, 0.8, 0.0})
         )
     );
 
@@ -58,8 +64,8 @@ int main()
 
     CONSTEXPR RenderConfig config
     {
-        .SPP = 64,
-        .bounces = 10,
+        .SPP = 1024,
+        .bounces = 64,
     };
 
     Image film;
