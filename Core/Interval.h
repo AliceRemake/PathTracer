@@ -80,6 +80,15 @@ struct Interval
         if (Flt(interval.imin, interval.imax)) std::swap(interval.imin, interval.imax);
         return interval;
     }
+
+    NODISCARD FORCE_INLINE static Interval Union(const Interval& lhs, const Interval& rhs) NOEXCEPT
+    {
+        return Interval
+        {
+            .imin = std::min(lhs.imin, rhs.imin),
+            .imax = std::max(lhs.imax, rhs.imax),
+        };
+    }
  };
 
 #endif //INTERVAL_H

@@ -16,19 +16,24 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <fmt/format.h>
-#include <fmt/printf.h>
-
 #ifdef _MSC_VER
     #pragma warning(push)
     #pragma warning(disable:5054)
+    #pragma warning(disable:4459)
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "Your Warnnings"
 #endif
 
+#include <fmt/format.h>
+#include <fmt/printf.h>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
 #ifdef _MSC_VER
     #pragma warning(pop)
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic pop
 #endif
 
 // C Headers
@@ -67,14 +72,25 @@
         #define NOEXCEPT noexcept         // CXX11
         #define CONSTEXPR constexpr       // CXX11
         #define OVERRIDE override         // CXX11
+    #else
+        #define THREAD_LOCAL
+        #define NOEXCEPT
+        #define CONSTEXPR
+        #define OVERRIDE
     #endif
     #if __cplusplus >= 201703L
         #define NODISCARD [[nodiscard]]   // CXX17
         #define UNUSED [[maybe_unused]]   // CXX17
+    #else
+        #define NODISCARD
+        #define UNUSED
     #endif
     #if __cplusplus >= 202002L
         #define LIKELY [[likely]]         // CXX20
         #define UNLIKELY [[unlikely]]     // CXX20
+    #else
+        #define LIKELY
+        #define UNLIKELY
     #endif
 #endif
 
@@ -168,7 +184,7 @@ NODISCARD CONSTEXPR FORCE_INLINE Ref<T> MakeRef(Args&&... args) NOEXCEPT
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
-CONSTEXPR double EPS = 10 * std::numeric_limits<double>::epsilon();
+CONSTEXPR double EPS = 100 * std::numeric_limits<double>::epsilon();
 CONSTEXPR double INF = std::numeric_limits<double>::infinity();
 CONSTEXPR double PI = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679;
 

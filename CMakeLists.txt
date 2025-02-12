@@ -82,8 +82,12 @@ TARGET_SOURCES(PathTracer PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Interval.cpp
     ${CMAKE_SOURCE_DIR}/Core/Image.h
     ${CMAKE_SOURCE_DIR}/Core/Image.cpp
+    ${CMAKE_SOURCE_DIR}/Core/ONB.h
+    ${CMAKE_SOURCE_DIR}/Core/ONB.cpp
     ${CMAKE_SOURCE_DIR}/Core/Material.h
     ${CMAKE_SOURCE_DIR}/Core/Material.cpp
+    ${CMAKE_SOURCE_DIR}/Core/Texture.h
+    ${CMAKE_SOURCE_DIR}/Core/Texture.cpp
     ${CMAKE_SOURCE_DIR}/Core/Hittable.h
     ${CMAKE_SOURCE_DIR}/Core/Hittable.cpp
     ${CMAKE_SOURCE_DIR}/Core/Primitive.h

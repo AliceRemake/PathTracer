@@ -14,8 +14,9 @@
 #include <Core/RNG.h>
 #include <Core/Ray.h>
 
-NODISCARD Ray DiffuseUniformMaterial::Scatter(const Ray &ray UNUSED, const HitRecord &record) const NOEXCEPT
+NODISCARD Ray DiffuseMaterial::Scatter(const Ray &ray UNUSED, HitRecord &record) const NOEXCEPT
 {
+    record.scatter_type = HitRecord::SCATTER_TYPE_REFLECT;
     return Ray
     {
         .origin = record.hit_point,
@@ -23,13 +24,21 @@ NODISCARD Ray DiffuseUniformMaterial::Scatter(const Ray &ray UNUSED, const HitRe
     };
 }
 
-NODISCARD Eigen::Vector3d DiffuseUniformMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
+NODISCARD Eigen::Vector3d DiffuseMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
 {
-    return reflection.array() * color.array();
+    if (color_tex == nullptr)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        return color_tex->Sample(record.texcoord2d).array() * color.array();
+    }
 }
 
-NODISCARD Ray DiffuseLambertMaterial::Scatter(const Ray &ray UNUSED, const HitRecord &record) const NOEXCEPT
+NODISCARD Ray LambertMaterial::Scatter(const Ray &ray UNUSED, HitRecord &record) const NOEXCEPT
 {
+    record.scatter_type = HitRecord::SCATTER_TYPE_REFLECT;
     return Ray
     {
         .origin = record.hit_point,
@@ -37,13 +46,21 @@ NODISCARD Ray DiffuseLambertMaterial::Scatter(const Ray &ray UNUSED, const HitRe
     };
 }
 
-NODISCARD Eigen::Vector3d DiffuseLambertMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
+NODISCARD Eigen::Vector3d LambertMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
 {
-    return reflection.array() * color.array();
+    if (color_tex == nullptr)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        return color_tex->Sample(record.texcoord2d).array() * color.array();
+    }
 }
 
-NODISCARD Ray MetalMaterial::Scatter(const Ray &ray, const HitRecord &record) const NOEXCEPT
+NODISCARD Ray MetalMaterial::Scatter(const Ray &ray, HitRecord &record) const NOEXCEPT
 {
+    record.scatter_type = HitRecord::SCATTER_TYPE_REFLECT;
     return Ray
     {
         .origin = record.hit_point,
@@ -53,10 +70,17 @@ NODISCARD Ray MetalMaterial::Scatter(const Ray &ray, const HitRecord &record) co
 
 NODISCARD Eigen::Vector3d MetalMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
 {
-    return reflection.array() * color.array();
+    if (color_tex == nullptr)
+    {
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        return color_tex->Sample(record.texcoord2d).array() * color.array();
+    }
 }
 
-NODISCARD Ray DielectricMaterial::Scatter(const Ray &ray, const HitRecord &record) const NOEXCEPT
+NODISCARD Ray DielectricMaterial::Scatter(const Ray &ray, HitRecord &record) const NOEXCEPT
 {
     const double cos_theta = std::clamp(-ray.direction.dot(record.hit_normal), -1.0, 1.0);
     const double sin_theta = SSqrt(1.0 - cos_theta * cos_theta);
@@ -64,6 +88,7 @@ NODISCARD Ray DielectricMaterial::Scatter(const Ray &ray, const HitRecord &recor
 
     if (rior * sin_theta > 1.0) // Total Internal Reflection. TIR.
     {
+        record.scatter_type = HitRecord::SCATTER_TYPE_REFLECT;
         return Ray
         {
             .origin = record.hit_point,
@@ -71,23 +96,46 @@ NODISCARD Ray DielectricMaterial::Scatter(const Ray &ray, const HitRecord &recor
         };
     }
 
-    if (auto dist = RNG::UniformDist(0.0, 1.0); RNG::Rand(dist) < SchlickReflectance(cos_theta, rior))
+    if (auto dist = RNG::UniformDist<double>(0, 1); RNG::Rand(dist) < SchlickReflectance(cos_theta, rior))
     {
+        record.scatter_type = HitRecord::SCATTER_TYPE_REFLECT;
         return Ray
         {
             .origin = record.hit_point,
             .direction = Reflect(-ray.direction, record.hit_normal),
         };
     }
-
-    return Ray
+    else
     {
-        .origin = record.hit_point,
-        .direction = Refract(cos_theta, -ray.direction, record.hit_normal, rior),
-    };
+        record.scatter_type = HitRecord::SCATTER_TYPE_REFRACT;
+        return Ray
+        {
+            .origin = record.hit_point,
+            .direction = Refract(cos_theta, -ray.direction, record.hit_normal, rior),
+        };
+    }
 }
 
-NODISCARD Eigen::Vector3d DielectricMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
+NODISCARD Eigen::Vector3d DielectricMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT
 {
-    return color.array();
+    if (record.scatter_type == HitRecord::SCATTER_TYPE_REFLECT)
+    {
+        // return color_tex->Sample(record.texcoord2d).array() * color.array();
+        return color.array();
+    }
+    else // if (record.scatter_type == HitRecord::SCATTER_TYPE_REFRACT)
+    {
+        // return (1.0 - color_tex->Sample(record.texcoord2d).array()) * color.array();
+        return color.array();
+    }
+}
+
+NODISCARD Ray PhongMaterial::Scatter(const Ray &ray UNUSED, HitRecord &record UNUSED) const NOEXCEPT
+{
+    exit(0);
+}
+
+NODISCARD Eigen::Vector3d PhongMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color UNUSED) const NOEXCEPT
+{
+    exit(0);
 }

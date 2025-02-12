@@ -29,71 +29,81 @@ void Renderer::Render(const Camera& camera, const Scene& scene, const RenderConf
     const double start_x = -(width + pixel_size) / 2.0;
     const double start_z = (height - pixel_size) / 2.0;
 
-    #ifdef ENABLE_MULTI_THREAD
-    // TODO: Add Progress Bar
-    Parallel::For(0, camera.height, THREAD_POOL.ThreadNumber(),
-        [&film, &camera, &scene, &config, pixel_size, spp_norm_factor, start_x, start_z]
-        (size_t thread_begin, size_t thread_end)
-        {
-            auto dist = RNG::UniformDist<double>(-pixel_size / 2, pixel_size / 2);
+    static std::vector<std::future<void>> futures(THREAD_POOL.ThreadNumber());
 
-            double z = start_z - (double)thread_begin * pixel_size;
-            for (Eigen::Index row = (Eigen::Index)thread_begin; row < (Eigen::Index)thread_end; ++row, z -= pixel_size)
-            {
-                double x = start_x;
-                for (Eigen::Index col = 0; col < camera.width; ++col, x += pixel_size)
-                {
-                    Eigen::Vector3d color = Eigen::Vector3d{0.0, 0.0, 0.0};
-                    for (size_t i = 0; i < config.SPP; ++i)
-                    {
-                        double sample_x = x + RNG::Rand(dist);
-                        double sample_z = z + RNG::Rand(dist);
-                        Ray sample_ray
-                        {
-                            .origin = camera.origin,
-                            .direction = (sample_x * camera.right + camera.near * camera.direction + sample_z * camera.up).normalized(),
-                        };
-                        color += Ray::RayCast(sample_ray, scene, config.bounces);
-                    }
-                    color *= spp_norm_factor;
-                    auto& pixel = film(row, col);
-                    pixel.x() = color.x();
-                    pixel.y() = color.y();
-                    pixel.z() = color.z();
-                    pixel.w() = 1.0;
-                }
-            }
-        }
-    );
-    #else
-    // TODO: Add Progress Bar
-    auto dist = RNG::UniformDist<double>(-pixel_size / 2, pixel_size / 2);
-
-    double z = start_z;
-    for (Eigen::Index row = 0; row < (Eigen::Index)camera.height; ++row, z -= pixel_size)
+    for (Eigen::Index index = 0; index < film.Height() * film.Width();)
     {
-        double x = start_x;
-        for (Eigen::Index col = 0; col < camera.width; ++col, x += pixel_size)
+        Eigen::Index prev_index = index;
+        for (Eigen::Index j = 0; index < film.Height() * film.Width() && j < (Eigen::Index)THREAD_POOL.ThreadNumber(); ++index, ++j)
         {
-            Eigen::Vector3d color = Eigen::Vector3d{0.0, 0.0, 0.0};
-            for (size_t i = 0; i < config.SPP; ++i)
+            futures[j] = THREAD_POOL.Submit([&film, &config, &camera, &scene, index, start_z, start_x, pixel_size, spp_norm_factor]
             {
-                double sample_x = x + RNG::Rand(dist);
-                double sample_z = z + RNG::Rand(dist);
-                Ray sample_ray
+                auto dist = RNG::UniformDist<double>(-pixel_size / 2, pixel_size / 2);
+                const Eigen::Index row = index / film.Width();
+                const Eigen::Index col = index % film.Width();
+                const double z = start_z - (double)row * pixel_size;
+                const double x = start_x + (double)col * pixel_size;
+                Eigen::Vector3d color = Eigen::Vector3d{0.0, 0.0, 0.0};
+                for (size_t i = 0; i < config.SPP; ++i)
                 {
-                    .origin = camera.origin,
-                    .direction = (sample_x * camera.right + camera.near * camera.direction + sample_z * camera.up).normalized(),
-                };
-                color += Ray::RayCast(sample_ray, scene, config.bounces);
-            }
-            color *= spp_norm_factor;
-            auto& pixel = film(row, col);
-            pixel.x() = color.x();
-            pixel.y() = color.y();
-            pixel.z() = color.z();
-            pixel.w() = 1.0;
+                    double sample_x = x + RNG::Rand(dist);
+                    double sample_z = z + RNG::Rand(dist);
+                    Ray sample_ray
+                    {
+                        .origin = camera.origin,
+                        .direction = (sample_x * camera.right + camera.near * camera.direction + sample_z * camera.up).normalized(),
+                    };
+                    color += Ray::RayCast(sample_ray, scene, 0, config.stop_prob);
+                }
+                color *= spp_norm_factor;
+                auto& pixel = film(row, col);
+                pixel.head(3) = color.head(3);
+                pixel.w() = 1.0;
+            });
+        }
+        for (Eigen::Index j = 0; prev_index < film.Height() * film.Width() && j < (Eigen::Index)THREAD_POOL.ThreadNumber(); ++prev_index, ++j)
+        {
+            futures[j].wait();
         }
     }
-    #endif
+    // for (Eigen::Index i = 0; i < film.Height() * film.Width(); ++i)
+    // {
+    //     futures[i].wait();
+    // }
+
+    // TODO: Add Progress Bar
+    // Parallel::For(0, camera.height, THREAD_POOL.ThreadNumber(),
+    //     [&film, &camera, &scene, &config, pixel_size, spp_norm_factor, start_x, start_z]
+    //     (size_t thread_begin, size_t thread_end)
+    //     {
+    //         auto dist = RNG::UniformDist<double>(-pixel_size / 2, pixel_size / 2);
+    //
+    //         double z = start_z - (double)thread_begin * pixel_size;
+    //         for (Eigen::Index row = (Eigen::Index)thread_begin; row < (Eigen::Index)thread_end; ++row, z -= pixel_size)
+    //         {
+    //             double x = start_x;
+    //             for (Eigen::Index col = 0; col < camera.width; ++col, x += pixel_size)
+    //             {
+    //                 Eigen::Vector3d color = Eigen::Vector3d{0.0, 0.0, 0.0};
+    //                 for (size_t i = 0; i < config.SPP; ++i)
+    //                 {
+    //                     double sample_x = x + RNG::Rand(dist);
+    //                     double sample_z = z + RNG::Rand(dist);
+    //                     Ray sample_ray
+    //                     {
+    //                         .origin = camera.origin,
+    //                         .direction = (sample_x * camera.right + camera.near * camera.direction + sample_z * camera.up).normalized(),
+    //                     };
+    //                     color += Ray::RayCast(sample_ray, scene, 0, config.stop_prob);
+    //                 }
+    //                 color *= spp_norm_factor;
+    //                 auto& pixel = film(row, col);
+    //                 pixel.x() = color.x();
+    //                 pixel.y() = color.y();
+    //                 pixel.z() = color.z();
+    //                 pixel.w() = 1.0;
+    //             }
+    //         }
+    //     }
+    // );
 }

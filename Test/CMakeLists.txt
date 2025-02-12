@@ -29,43 +29,7 @@ LINK_LIBRARIES(
 )
 
 ADD_EXECUTABLE(
-    TestCommon
-    TestCommon.cpp
-    ${CMAKE_SOURCE_DIR}/Core/Common.h
-)
-
-ADD_EXECUTABLE(
-    TestInterval
-    TestInterval.cpp
-    ${CMAKE_SOURCE_DIR}/Core/Common.h
-    ${CMAKE_SOURCE_DIR}/Core/Interval.h
-    ${CMAKE_SOURCE_DIR}/Core/Interval.cpp
-)
-
-ADD_EXECUTABLE(
-    TestThreadPool
-    TestThreadPool.cpp
-    ${CMAKE_SOURCE_DIR}/Core/ThreadPool.h
-    ${CMAKE_SOURCE_DIR}/Core/ThreadPool.cpp
-)
-
-ADD_EXECUTABLE(
-    TestParallel
-    TestParallel.cpp
-    ${CMAKE_SOURCE_DIR}/Core/Parallel.h
-    ${CMAKE_SOURCE_DIR}/Core/Parallel.cpp
-)
-
-ADD_EXECUTABLE(
-    TestImage
-    TestImage.cpp
-    ${CMAKE_SOURCE_DIR}/Core/Image.h
-    ${CMAKE_SOURCE_DIR}/Core/Image.cpp
-)
-
-ADD_EXECUTABLE(
-    TestBounds
-    TestBounds.cpp
-    ${CMAKE_SOURCE_DIR}/Core/Bounds.h
-    ${CMAKE_SOURCE_DIR}/Core/Bounds.cpp
+    TestDebug
+    TestDebug.cpp
+    ${CMAKE_SOURCE_DIR}/Core/Debug.h
 )

@@ -20,14 +20,11 @@ struct Scene;
 struct Ray
 {
     Eigen::Vector3d origin;
-    Eigen::Vector3d direction; // Normalized.
+    Eigen::Vector3d direction;
 
-    NODISCARD FORCE_INLINE Eigen::Vector3d At(const double t) const NOEXCEPT
-    {
-        return origin + t * direction;
-    }
+    NODISCARD Eigen::Vector3d At(const double t) const NOEXCEPT { return origin + t * direction; }
 
-    NODISCARD static Eigen::Vector3d RayCast(const Ray& ray, const Scene& scene, size_t bounces) NOEXCEPT;
+    NODISCARD static Eigen::Vector3d RayCast(const Ray& ray, const Scene& scene, Eigen::Index bounce, double stop_prob) NOEXCEPT;
 };
 
 #endif //RAY_H

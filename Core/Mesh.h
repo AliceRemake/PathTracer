@@ -30,7 +30,7 @@ struct Mesh final : Hittable
         Eigen::Index texcoord;
     };
 
-    struct Triangle final // Three Vertex + One Material.
+    struct Triangle // Three Vertex + One Material.
     {
         Index point[3];
         Eigen::Index material;

@@ -22,14 +22,12 @@ struct Image;
 struct RenderConfig
 {
     const size_t SPP;
-    const size_t bounces;
+    const double stop_prob; // Continue Probability.
 };
 
 struct Renderer
 {
     static void Render(const Camera& camera, const Scene& scene, const RenderConfig& config, Image& film) NOEXCEPT;
 };
-
-
 
 #endif //RENDERER_H

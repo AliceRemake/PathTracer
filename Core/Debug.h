@@ -20,17 +20,8 @@ struct Debug
 {
     static void Dump(FILE* fp, const Eigen::Vector3f& v) NOEXCEPT;
 
-    template<class T>
-    FORCE_INLINE static void Unuse(T&& arg) NOEXCEPT
-    {
-        (void)arg;
-    }
-
-    template<class T, class... Args>
-    FORCE_INLINE static void Unuse(T&& arg, Args&&... args) NOEXCEPT
-    {
-        (void)arg; Unuse(std::forward<Args>(args)...);
-    }
+    template<class T> FORCE_INLINE static void Unuse(T&& arg) NOEXCEPT { (void)arg; }
+    template<class T, class... Args> FORCE_INLINE static void Unuse(T&& arg, Args&&... args) NOEXCEPT { (void)arg; Unuse(std::forward<Args>(args)...); }
 
     template<class... Args>
     FORCE_INLINE static void Print(fmt::format_string<Args...>&& format, Args&&... args) NOEXCEPT
@@ -48,19 +39,29 @@ struct Debug
         #endif
     }
 
-    NODISCARD FORCE_INLINE static size_t TimeNanoS() NOEXCEPT
+    NODISCARD FORCE_INLINE static std::chrono::high_resolution_clock::time_point Now() NOEXCEPT
     {
-        return std::chrono::system_clock::now().time_since_epoch().count();
+        return std::chrono::high_resolution_clock::now();
     }
 
-    NODISCARD FORCE_INLINE static size_t TimeMicroS() NOEXCEPT
+    NODISCARD FORCE_INLINE static size_t NanoSeconds(const std::chrono::high_resolution_clock::duration& duration) NOEXCEPT
     {
-        return std::chrono::system_clock::now().time_since_epoch().count() / 1000;
+        return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
     }
 
-    NODISCARD FORCE_INLINE static size_t TimeMilliS() NOEXCEPT
+    NODISCARD FORCE_INLINE static size_t MicroSeconds(const std::chrono::high_resolution_clock::duration& duration) NOEXCEPT
     {
-        return std::chrono::system_clock::now().time_since_epoch().count() / 1000000;
+        return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+    }
+
+    NODISCARD FORCE_INLINE static size_t MilliSeconds(const std::chrono::high_resolution_clock::duration& duration) NOEXCEPT
+    {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    }
+
+    NODISCARD FORCE_INLINE static size_t Seconds(const std::chrono::high_resolution_clock::duration& duration) NOEXCEPT
+    {
+        return std::chrono::duration_cast<std::chrono::seconds>(duration).count();
     }
 };
 

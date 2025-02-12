@@ -25,6 +25,5 @@ NODISCARD bool Scene::Hit(const Ray &ray, const Interval &interval, HitRecord &r
             }
         }
     }
-
-    return Fne(record.t, INF);
+    return !FIsInfinity(record.t);
 }

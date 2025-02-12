@@ -16,6 +16,8 @@
 #include <Core/Common.h>
 #include <Core/Hittable.h>
 
+#include "Core/Texture.h"
+
 struct Ray;
 
 struct Material
@@ -23,14 +25,11 @@ struct Material
 protected:
     enum MaterialType
     {
-        MATERIAL_TYPE_DIFFUSE_BEGIN,
-        MATERIAL_TYPE_DIFFUSE_UNIFORM,
-        MATERIAL_TYPE_DIFFUSE_LAMBERT,
-        MATERIAL_TYPE_DIFFUSE_END,
-
+        MATERIAL_TYPE_DIFFUSE,
+        MATERIAL_TYPE_LAMBERT,
         MATERIAL_TYPE_METAL,
-
         MATERIAL_TYPE_DIELECTRICS,
+        MATERIAL_TYPE_PHONG,
     };
 
     const MaterialType kind;
@@ -41,21 +40,21 @@ public:
     NODISCARD explicit Material(const MaterialType kind) NOEXCEPT : kind(kind) {}
     virtual ~Material() NOEXCEPT = default;
 
-    NODISCARD virtual Ray Scatter(const Ray& ray, const HitRecord& record) const NOEXCEPT = 0;
+    NODISCARD virtual Ray Scatter(const Ray& ray, HitRecord& record) const NOEXCEPT = 0;
+
     NODISCARD virtual Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT = 0;
 
+    // Helper Functions
     NODISCARD static Eigen::Vector3d Reflect(const Eigen::Vector3d& i, const Eigen::Vector3d& n) NOEXCEPT
     {
         return - (i - 2.0 * i.dot(n) * n).normalized();
     }
-
     NODISCARD static Eigen::Vector3d Refract(const double cos_theta, const Eigen::Vector3d& i, const Eigen::Vector3d& n, const double rior) NOEXCEPT
     {
         const Eigen::Vector3d perpendicular = (FIsNegative(cos_theta) ? 1.0 / rior : rior) * (- i + cos_theta * n);
         const Eigen::Vector3d parallel = - SSqrt(1.0 - perpendicular.squaredNorm()) * n;
         return (perpendicular + parallel).normalized();
     }
-
     NODISCARD static double SchlickReflectance(const double cos_theta, const double rior) NOEXCEPT
     {
         const double r0 = ((1 - rior) / (1 + rior)) * ((1 - rior) / (1 + rior));
@@ -64,41 +63,39 @@ public:
     }
 };
 
-struct DiffuseMaterial : Material
+struct DiffuseMaterial final : Material
 {
-    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT
-    {
-        return MATERIAL_TYPE_DIFFUSE_BEGIN < ptr->Kind() && ptr->Kind() < MATERIAL_TYPE_DIFFUSE_END;
-    }
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_DIFFUSE;}
 
-    NODISCARD explicit DiffuseMaterial(const MaterialType kind) NOEXCEPT : Material(kind) {}
-};
+    Ref<Texture2D<Eigen::Vector3d>> color_tex;
 
-struct DiffuseUniformMaterial final : DiffuseMaterial
-{
-    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_DIFFUSE_UNIFORM;}
+    NODISCARD DiffuseMaterial() NOEXCEPT
+    : Material(MATERIAL_TYPE_DIFFUSE), color_tex(nullptr)
+    {}
 
-    NODISCARD explicit DiffuseUniformMaterial() NOEXCEPT : DiffuseMaterial(MATERIAL_TYPE_DIFFUSE_UNIFORM) {}
-    NODISCARD explicit DiffuseUniformMaterial(Eigen::Vector3d diffuse) NOEXCEPT
-    : DiffuseMaterial(MATERIAL_TYPE_DIFFUSE_UNIFORM), reflection(std::move(diffuse)) {}
+    NODISCARD explicit DiffuseMaterial(const Ref<Texture2D<Eigen::Vector3d>>& color_tex) NOEXCEPT
+    : Material(MATERIAL_TYPE_DIFFUSE), color_tex(color_tex)
+    {}
 
-    Eigen::Vector3d reflection;
-
-    NODISCARD Ray Scatter(const Ray &ray, const HitRecord &record) const NOEXCEPT OVERRIDE;
+    NODISCARD Ray Scatter(const Ray &ray, HitRecord &record) const NOEXCEPT OVERRIDE;
     NODISCARD Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT OVERRIDE;
 };
 
-struct DiffuseLambertMaterial final : DiffuseMaterial
+struct LambertMaterial final : Material
 {
-    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_DIFFUSE_LAMBERT;}
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_LAMBERT;}
 
-    NODISCARD explicit DiffuseLambertMaterial() NOEXCEPT : DiffuseMaterial(MATERIAL_TYPE_DIFFUSE_LAMBERT) {}
-    NODISCARD explicit DiffuseLambertMaterial(Eigen::Vector3d diffuse) NOEXCEPT
-    : DiffuseMaterial(MATERIAL_TYPE_DIFFUSE_LAMBERT), reflection(std::move(diffuse)) {}
+    Ref<Texture2D<Eigen::Vector3d>> color_tex;
 
-    Eigen::Vector3d reflection;
+    NODISCARD LambertMaterial() NOEXCEPT
+    : Material(MATERIAL_TYPE_LAMBERT), color_tex(nullptr)
+    {}
 
-    NODISCARD Ray Scatter(const Ray &ray, const HitRecord &record) const NOEXCEPT OVERRIDE;
+    NODISCARD explicit LambertMaterial(const Ref<Texture2D<Eigen::Vector3d>>& color_tex) NOEXCEPT
+    : Material(MATERIAL_TYPE_LAMBERT), color_tex(color_tex)
+    {}
+
+    NODISCARD Ray Scatter(const Ray &ray, HitRecord &record) const NOEXCEPT OVERRIDE;
     NODISCARD Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT OVERRIDE;
 };
 
@@ -106,28 +103,54 @@ struct MetalMaterial final : Material
 {
     NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_METAL;}
 
-    NODISCARD explicit MetalMaterial() NOEXCEPT : Material(MATERIAL_TYPE_METAL), fuzziness() {}
-    NODISCARD explicit MetalMaterial(Eigen::Vector3d reflection, double fuzziness) NOEXCEPT
-    : Material(MATERIAL_TYPE_METAL), reflection(std::move(reflection)), fuzziness(fuzziness) {}
-
-    Eigen::Vector3d reflection;
+    Ref<Texture2D<Eigen::Vector3d>> color_tex;
     double fuzziness;
 
-    NODISCARD Ray Scatter(const Ray &ray, const HitRecord &record) const NOEXCEPT OVERRIDE;
+    NODISCARD MetalMaterial() NOEXCEPT
+    : Material(MATERIAL_TYPE_METAL), color_tex(nullptr), fuzziness(0)
+    {}
+
+    NODISCARD explicit MetalMaterial(const Ref<Texture2D<Eigen::Vector3d>>& color_tex, double fuzziness) NOEXCEPT
+    : Material(MATERIAL_TYPE_METAL), color_tex(color_tex), fuzziness(fuzziness)
+    {}
+
+    NODISCARD Ray Scatter(const Ray &ray, HitRecord &record) const NOEXCEPT OVERRIDE;
     NODISCARD Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT OVERRIDE;
 };
 
 struct DielectricMaterial final : Material
 {
-    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_METAL;}
-
-    NODISCARD explicit DielectricMaterial() NOEXCEPT : Material(MATERIAL_TYPE_METAL), ior() {}
-    NODISCARD explicit DielectricMaterial(double ior) NOEXCEPT
-    : Material(MATERIAL_TYPE_METAL), ior(ior) {}
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_DIELECTRICS;}
 
     double ior;
 
-    NODISCARD Ray Scatter(const Ray &ray, const HitRecord &record) const NOEXCEPT OVERRIDE;
+    NODISCARD DielectricMaterial() NOEXCEPT
+    : Material(MATERIAL_TYPE_DIELECTRICS), ior(1.5)
+    {}
+
+    NODISCARD explicit DielectricMaterial(const double ior) NOEXCEPT
+    : Material(MATERIAL_TYPE_METAL), ior(ior)
+    {}
+
+    NODISCARD Ray Scatter(const Ray &ray, HitRecord &record) const NOEXCEPT OVERRIDE;
+    NODISCARD Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT OVERRIDE;
+};
+
+struct PhongMaterial final : Material
+{
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Material* ptr) NOEXCEPT {return ptr->Kind() == MATERIAL_TYPE_PHONG;}
+
+    Eigen::Vector3d kd;
+    Eigen::Vector3d ks;
+    Eigen::Vector3d tr;
+    double ns;
+    double ni;
+
+    NODISCARD PhongMaterial() NOEXCEPT : Material(MATERIAL_TYPE_PHONG), ns(1.0), ni(1.0) {}
+    NODISCARD explicit PhongMaterial(Eigen::Vector3d kd, Eigen::Vector3d ks, Eigen::Vector3d tr, const double ns, const double ni) NOEXCEPT
+    : Material(MATERIAL_TYPE_PHONG), kd(std::move(kd)), ks(std::move(ks)), tr(std::move(tr)), ns(ns), ni(ni) {}
+
+    NODISCARD Ray Scatter(const Ray &ray, HitRecord &record) const NOEXCEPT OVERRIDE;
     NODISCARD Eigen::Vector3d Shading(const Ray& ray, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT OVERRIDE;
 };
 
