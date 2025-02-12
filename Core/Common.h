@@ -22,7 +22,7 @@
     #pragma warning(disable:4459)
 #elif defined(__GNUC__)
     #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "Your Warnnings"
+    // #pragma GCC diagnostic ignored
 #endif
 
 #include <fmt/format.h>

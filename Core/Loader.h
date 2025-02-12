@@ -16,9 +16,9 @@
 #include <Core/Common.h>
 #include <Core/Mesh.h>
 
-struct Loader
-{
-    NODISCARD static Mesh LoadOBJ(const char* filename) NOEXCEPT;
-};
+// struct Loader
+// {
+//     NODISCARD static Mesh LoadOBJ(const char* filename) NOEXCEPT;
+// };
 
 #endif //LOADER_H

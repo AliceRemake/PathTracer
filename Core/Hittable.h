@@ -14,10 +14,9 @@
 #define HITTABLE_H
 
 #include <Core/Common.h>
+#include <Core/Bounds.h>
 
-struct Interval;
 struct Material;
-struct Ray;
 
 struct HitRecord
 {
@@ -35,51 +34,133 @@ struct HitRecord
     Eigen::Vector3d hit_normal;
 };
 
-// ReSharper disable once CppClassCanBeFinal
 struct Hittable
 {
 protected:
-    enum HittableType
+    const enum HittableKind
     {
-        HITTABLE_TYPE_LIST,
-        HITTABLE_TYPE_PRIMITIVE_3D_START,
-        HITTABLE_TYPE_PLANE,
-        HITTABLE_TYPE_DISK,
-        HITTABLE_TYPE_TRIANGLE,
-        HITTABLE_TYPE_QUADRANGLE,
-        HITTABLE_TYPE_SPHERE,
-        HITTABLE_TYPE_PRIMITIVE_3D_END,
-        HITTABLE_TYPE_MESH,
-        HITTABLE_TYPE_SCENE,
-        // Acc
-        HITTABLE_TYPE_AABB,
-    };
+        HITTABLE_KIND_PRIMITIVE_START,
+        HITTABLE_KIND_QUADRANGLE, // TODO
+        HITTABLE_KIND_SPHERE,
+        HITTABLE_KIND_PRIMITIVE_END,
 
-    const HittableType kind;
+        HITTABLE_KIND_MESH,
+
+        HITTABLE_KIND_LIST,
+        HITTABLE_KIND_BVH,
+    } kind;
 
 public:
-    NODISCARD CONSTEXPR FORCE_INLINE HittableType Kind() const NOEXCEPT {return kind;}
-
-    NODISCARD explicit Hittable(const HittableType kind) NOEXCEPT : kind(kind) {}
+    NODISCARD CONSTEXPR FORCE_INLINE HittableKind Kind() const NOEXCEPT { return kind; }
+    NODISCARD explicit Hittable(const HittableKind kind) NOEXCEPT : kind(kind) {}
     virtual ~Hittable() NOEXCEPT = default;
 
+    // Interface.
+    NODISCARD virtual const Ref<BoundingBox>& GetBoundingBox() const NOEXCEPT = 0;
     NODISCARD virtual bool Hit(const Ray& ray, const Interval& interval, HitRecord& record) const NOEXCEPT = 0;
 };
 
+struct BVH;
+
 struct HittableList final : Hittable
 {
-    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_TYPE_LIST;}
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_KIND_LIST;}
 
-    std::vector<Ref<Hittable>> hittable_list;
+    std::vector<Ref<Hittable>> data;
+    Ref<BVH> bvh;
 
-    NODISCARD HittableList() NOEXCEPT : Hittable(HITTABLE_TYPE_LIST) {}
-    NODISCARD explicit HittableList(const std::vector<Ref<Hittable>>& hittable_list) NOEXCEPT
-    : Hittable(HITTABLE_TYPE_LIST), hittable_list(hittable_list) {}
+    NODISCARD HittableList() NOEXCEPT : Hittable(HITTABLE_KIND_LIST) {}
 
-    void PushBack(const Ref<Hittable>& hittable) NOEXCEPT {hittable_list.push_back(hittable);}
-    void PopBack() NOEXCEPT {hittable_list.pop_back();}
+    void PushBack(const Ref<Hittable>& hittable) NOEXCEPT { data.push_back(hittable); }
+    void PopBack() NOEXCEPT { data.pop_back(); }
+    void InitializeBVH() NOEXCEPT { bvh = MakeRef<BVH>(*this); }
 
+    NODISCARD const Ref<BoundingBox>& GetBoundingBox() const NOEXCEPT OVERRIDE;
     NODISCARD bool Hit(const Ray& ray, const Interval& interval, HitRecord& record) const NOEXCEPT OVERRIDE;
 };
+
+struct BVH final : Hittable
+{
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_KIND_BVH;}
+
+    Ref<Hittable> left;
+    Ref<Hittable> right;
+    Ref<BoundingBox> bounding_box;
+
+    NODISCARD BVH() NOEXCEPT
+    : Hittable(HITTABLE_KIND_BVH), left(nullptr), right(nullptr)
+    {}
+
+    NODISCARD explicit BVH(HittableList& hittable_list, Eigen::Index start, Eigen::Index end) NOEXCEPT
+    : Hittable(HITTABLE_KIND_BVH), left(nullptr), right(nullptr)
+    {
+        ASSERT(start < end);
+
+        if (start + 1 == end)
+        {
+            left = right = hittable_list.data[start];
+        }
+        else if (start + 2 == end)
+        {
+            left = hittable_list.data[start];
+            right = hittable_list.data[start + 1];
+        }
+        else
+        {
+            Eigen::Index mid = (start + end) / 2;
+            left = MakeRef<BVH>(hittable_list, start, mid);
+            right = MakeRef<BVH>(hittable_list, mid, end);
+        }
+
+        bounding_box = MakeRef<AABB>(
+            *Cast<AABB>(left->GetBoundingBox().get()),
+            *Cast<AABB>(right->GetBoundingBox().get())
+        );
+    }
+
+    NODISCARD explicit BVH(HittableList& hittable_list) NOEXCEPT
+    : Hittable(HITTABLE_KIND_BVH), left(nullptr), right(nullptr)
+    {
+        std::ranges::sort(hittable_list.data, [](const Ref<Hittable>& lhs, const Ref<Hittable>& rhs) -> bool
+        {
+            return lhs->GetBoundingBox()->Center().x() < rhs->GetBoundingBox()->Center().x();
+        });
+
+        if (hittable_list.data.empty()) UNLIKELY
+        {
+            return;
+        }
+        else if (hittable_list.data.size() == 1) UNLIKELY
+        {
+            left = right = hittable_list.data[0];
+        }
+        else if (hittable_list.data.size() == 2) UNLIKELY
+        {
+            left = hittable_list.data[0];
+            right = hittable_list.data[1];
+        }
+        else
+        {
+            left = MakeRef<BVH>(hittable_list, 0, hittable_list.data.size() / 2);
+            right = MakeRef<BVH>(hittable_list, hittable_list.data.size() / 2, hittable_list.data.size());
+        }
+
+        bounding_box = MakeRef<AABB>(
+            *Cast<AABB>(left->GetBoundingBox().get()),
+            *Cast<AABB>(right->GetBoundingBox().get())
+        );
+    }
+
+    NODISCARD const Ref<BoundingBox>& GetBoundingBox() const NOEXCEPT OVERRIDE { return bounding_box; }
+    NODISCARD bool Hit(const Ray &ray, const Interval &interval, HitRecord& record) const NOEXCEPT OVERRIDE // NOLINT(*-no-recursion)
+    {
+        if (!bounding_box->Hit(ray, interval)) { return false; }
+        const bool hit_left = left && left->Hit(ray, interval, record);
+        const bool hit_right = right && right->Hit(ray, hit_left ? Interval(interval.imin, record.t) : interval, record);
+        return hit_left || hit_right;
+    }
+};
+
+NODISCARD FORCE_INLINE const Ref<BoundingBox>& HittableList::GetBoundingBox() const NOEXCEPT { return bvh->GetBoundingBox(); }
 
 #endif //HITTABLE_H

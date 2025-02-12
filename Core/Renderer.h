@@ -15,6 +15,7 @@
 
 #include <Core/Common.h>
 
+struct Hittable;
 struct Camera;
 struct Scene;
 struct Image;
@@ -27,7 +28,7 @@ struct RenderConfig
 
 struct Renderer
 {
-    static void Render(const Camera& camera, const Scene& scene, const RenderConfig& config, Image& film) NOEXCEPT;
+    static void Render(const Camera& camera, const Ref<Hittable>& hittable, const RenderConfig& config, Image& film) NOEXCEPT;
 };
 
 #endif //RENDERER_H

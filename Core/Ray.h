@@ -15,7 +15,7 @@
 
 #include <Core/Common.h>
 
-struct Scene;
+struct Hittable;
 
 struct Ray
 {
@@ -24,7 +24,7 @@ struct Ray
 
     NODISCARD Eigen::Vector3d At(const double t) const NOEXCEPT { return origin + t * direction; }
 
-    NODISCARD static Eigen::Vector3d RayCast(const Ray& ray, const Scene& scene, Eigen::Index bounce, double stop_prob) NOEXCEPT;
+    NODISCARD static Eigen::Vector3d RayCast(const Ray& ray, const Ref<Hittable>& hittable, Eigen::Index bounce, double stop_prob) NOEXCEPT;
 };
 
 #endif //RAY_H

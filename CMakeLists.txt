@@ -94,8 +94,6 @@ TARGET_SOURCES(PathTracer PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Primitive.cpp
     ${CMAKE_SOURCE_DIR}/Core/Mesh.h
     ${CMAKE_SOURCE_DIR}/Core/Mesh.cpp
-    ${CMAKE_SOURCE_DIR}/Core/Scene.h
-    ${CMAKE_SOURCE_DIR}/Core/Scene.cpp
     ${CMAKE_SOURCE_DIR}/Core/Loader.h
     ${CMAKE_SOURCE_DIR}/Core/Loader.cpp
     ${CMAKE_SOURCE_DIR}/Core/Ray.h

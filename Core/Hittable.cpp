@@ -14,16 +14,21 @@
 
 NODISCARD bool HittableList::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
 {
-    record.t = INF;
-    for (const auto& hittable : hittable_list)
+    if (bvh == nullptr)
     {
-        if (HitRecord temp_record; hittable->Hit(ray, interval, temp_record))
+        record.t = INF;
+        for (const auto& hittable : data)
         {
-            if (Flt(temp_record.t, record.t))
+            if (HitRecord t_record; hittable->Hit(ray, interval, t_record))
             {
-                record = temp_record;
+                if (Flt(t_record.t, record.t))
+                {
+                    record = t_record;
+                }
             }
         }
+        return !FIsInfinity(record.t);
     }
-    return !FIsInfinity(record.t);
+
+    return bvh->Hit(ray, interval, record);
 }

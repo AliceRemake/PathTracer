@@ -15,79 +15,71 @@
 
 #include <Core/Common.h>
 
-// Close Interval [xmin, xmax]
-struct Interval
+struct Interval // (imin, imax)
 {
     double imin, imax;
 
-    static const Interval EMPTY;
-    static const Interval UNIVERSE;
+    NODISCARD Interval() NOEXCEPT
+    : imin(0), imax(0)
+    {}
 
-    NODISCARD CONSTEXPR FORCE_INLINE bool IsEmpty() const NOEXCEPT
+    NODISCARD Interval(const double a, const double b) NOEXCEPT
+    : imin(std::min(a, b)), imax(std::max(a, b))
+    {}
+
+    NODISCARD FORCE_INLINE bool IsEmpty() const NOEXCEPT
     {
-        return imin == INF && imax == -INF;
+        return Fge(imin, imax);
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE bool IsUniverse() const NOEXCEPT
+    NODISCARD FORCE_INLINE bool IsUniversal() const NOEXCEPT
     {
         return imin == -INF && imax == INF;
     }
 
+    NODISCARD double Center() const NOEXCEPT
+    {
+        return (imin + imax) / 2.0;
+    }
+
     NODISCARD FORCE_INLINE bool Contain(const double x) const NOEXCEPT
-    {
-        return Fle(imin, x) && Fle(x, imax);
-    }
-
-    NODISCARD FORCE_INLINE bool Contain(const Interval& oth) const NOEXCEPT
-    {
-        return Fle(imin, oth.imin) && Fle(oth.imax, imax);
-    }
-
-    NODISCARD FORCE_INLINE bool Surround(const double x) const NOEXCEPT
     {
         return Flt(imin, x) && Flt(x, imax);
     }
 
-    NODISCARD FORCE_INLINE bool Surround(const Interval& oth) const NOEXCEPT
+    NODISCARD FORCE_INLINE bool Contain(const Interval& oth) const NOEXCEPT
     {
         return Flt(imin, oth.imin) && Flt(oth.imax, imax);
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE double Clamp(const double x) const NOEXCEPT
+    NODISCARD FORCE_INLINE bool Overlap(const Interval& oth) const NOEXCEPT
+    {
+        if (IsEmpty() || oth.IsEmpty()) { return false; }
+        if (IsUniversal() || oth.IsUniversal()) { return true; }
+        return Fle(imin, oth.imax) && Fle(oth.imin, imax);
+    }
+
+    NODISCARD FORCE_INLINE double Clamp(const double x) const NOEXCEPT
     {
         ASSERT(!IsEmpty());
-        if (IsUniverse()) {return x;}
-        if (Flt(x, imin)) {return imin;}
-        if (Fgt(x, imax)) {return imax;}
+        if (Flt(x, imin)) UNLIKELY { return imin; }
+        if (Fgt(x, imax)) UNLIKELY { return imax; }
         return x;
     }
 
-    NODISCARD CONSTEXPR FORCE_INLINE static bool OverLap(const Interval& lhs, const Interval& rhs) NOEXCEPT
+    NODISCARD FORCE_INLINE Interval Expand(const double padding) const NOEXCEPT
     {
-        if (lhs.IsEmpty() || rhs.IsEmpty()) {return false;}
-        if (lhs.IsUniverse() || rhs.IsUniverse()) {return true;}
-        return Fle(lhs.imin, rhs.imax) && Fle(rhs.imin, lhs.imax);
+        return { imin - padding, imax + padding };
     }
 
     NODISCARD FORCE_INLINE static Interval Intersection(const Interval& lhs, const Interval& rhs) NOEXCEPT
     {
-        if (!OverLap(lhs, rhs)) {return EMPTY;}
-        Interval interval
-        {
-            .imin = std::max(lhs.imin, rhs.imin),
-            .imax = std::min(lhs.imax, rhs.imax),
-        };
-        if (Flt(interval.imin, interval.imax)) std::swap(interval.imin, interval.imax);
-        return interval;
+        return { std::max(lhs.imin, rhs.imin), std::min(lhs.imax, rhs.imax) };
     }
 
     NODISCARD FORCE_INLINE static Interval Union(const Interval& lhs, const Interval& rhs) NOEXCEPT
     {
-        return Interval
-        {
-            .imin = std::min(lhs.imin, rhs.imin),
-            .imax = std::max(lhs.imax, rhs.imax),
-        };
+        return { std::min(lhs.imin, rhs.imin), std::max(lhs.imax, rhs.imax) };
     }
  };
 

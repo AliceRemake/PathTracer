@@ -14,60 +14,80 @@
 #define BOUNDS_H
 
 #include <Core/Common.h>
-#include <Core/Interval.h>
-#include <Core/Hittable.h>
 #include <Core/Ray.h>
+#include <Core/Interval.h>
 
-struct AABB final : Hittable
+struct BoundingBox
 {
-    Interval x_interval, y_interval, z_interval;
+protected:
+    enum BoundingBoxKind
+    {
+        BOUNDING_BOX_KIND_AABB,
+        BOUNDING_BOX_KIND_BVH,
+    };
 
-    NODISCARD AABB() NOEXCEPT : Hittable(HITTABLE_TYPE_AABB),
-    x_interval(Interval::EMPTY), y_interval(Interval::EMPTY), z_interval(Interval::EMPTY) {}
+private:
+    const BoundingBoxKind kind;
+
+public:
+    NODISCARD CONSTEXPR FORCE_INLINE BoundingBoxKind Kind() const NOEXCEPT { return kind; }
+
+    NODISCARD virtual Eigen::Vector3d Center() const NOEXCEPT = 0;
+    NODISCARD virtual bool Hit(const Ray& ray, const Interval& interval) const NOEXCEPT = 0;
+
+    NODISCARD explicit BoundingBox(const BoundingBoxKind kind) NOEXCEPT : kind(kind) {}
+    virtual ~BoundingBox() NOEXCEPT = default;
+};
+
+struct AABB final : BoundingBox
+{
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const BoundingBox* ptr) NOEXCEPT {return ptr->Kind() == BOUNDING_BOX_KIND_AABB;}
+
+    Interval xi, yi, zi;
+
+    NODISCARD AABB() NOEXCEPT
+    : BoundingBox(BOUNDING_BOX_KIND_AABB)
+    {}
 
     NODISCARD AABB(const Interval& x_interval, const Interval& y_interval, const Interval& z_interval) NOEXCEPT
-    : Hittable(HITTABLE_TYPE_AABB), x_interval(x_interval), y_interval(y_interval), z_interval(z_interval) {}
+    : BoundingBox(BOUNDING_BOX_KIND_AABB), xi(x_interval), yi(y_interval), zi(z_interval)
+    {}
 
     NODISCARD AABB(const Eigen::Vector3d& a, const Eigen::Vector3d& b) NOEXCEPT
-    : Hittable(HITTABLE_TYPE_AABB), x_interval(), y_interval(), z_interval()
+    : BoundingBox(BOUNDING_BOX_KIND_AABB)
     {
-        x_interval = (a.x() < b.x()) ? Interval{a.x(), b.x()} : Interval{b.x(), a.x()};
-        y_interval = (a.y() < b.y()) ? Interval{a.y(), b.y()} : Interval{b.y(), a.y()};
-        z_interval = (a.z() < b.z()) ? Interval{a.z(), b.z()} : Interval{b.z(), a.z()};
+        xi = (a.x() < b.x()) ? Interval{a.x(), b.x()} : Interval{b.x(), a.x()};
+        yi = (a.y() < b.y()) ? Interval{a.y(), b.y()} : Interval{b.y(), a.y()};
+        zi = (a.z() < b.z()) ? Interval{a.z(), b.z()} : Interval{b.z(), a.z()};
     }
 
     NODISCARD AABB(const AABB& a, const AABB& b) NOEXCEPT
-    : Hittable(HITTABLE_TYPE_AABB),
-      x_interval(Interval::Union(a.x_interval, b.x_interval)),
-      y_interval(Interval::Union(a.y_interval, b.y_interval)),
-      z_interval(Interval::Union(a.z_interval, b.z_interval))
+    : BoundingBox(BOUNDING_BOX_KIND_AABB),
+      xi(Interval::Union(a.xi, b.xi)),
+      yi(Interval::Union(a.yi, b.yi)),
+      zi(Interval::Union(a.zi, b.zi))
     {}
 
-    // TODO: Use Interval
-    NODISCARD bool Hit(const Ray &ray, const Interval &interval UNUSED, HitRecord &record UNUSED) const NOEXCEPT OVERRIDE
+    NODISCARD Eigen::Vector3d Center() const NOEXCEPT OVERRIDE
     {
-        // Acc.
+        return { xi.Center(), yi.Center(), zi.Center() };
+    }
+
+    NODISCARD bool Hit(const Ray &ray, const Interval &interval) const NOEXCEPT OVERRIDE
+    {
         const double inv_dx = 1.0 / ray.direction.x();
         const double inv_dy = 1.0 / ray.direction.y();
         const double inv_dz = 1.0 / ray.direction.z();
 
-        const double t0x = (x_interval.imin - ray.origin.x()) * inv_dx;
-        const double t1x = (x_interval.imax - ray.origin.x()) * inv_dx;
-        const double t0y = (y_interval.imin - ray.origin.y()) * inv_dy;
-        const double t1y = (y_interval.imax - ray.origin.y()) * inv_dy;
-        const double t0z = (z_interval.imin - ray.origin.z()) * inv_dz;
-        const double t1z = (z_interval.imax - ray.origin.z()) * inv_dz;
+        const Interval hxi = Interval((xi.imin - ray.origin.x()) * inv_dx, (xi.imax - ray.origin.x()) * inv_dx);
+        const Interval hyi = Interval((yi.imin - ray.origin.y()) * inv_dy, (yi.imax - ray.origin.y()) * inv_dy);
+        const Interval hzi = Interval((zi.imin - ray.origin.z()) * inv_dz, (zi.imax - ray.origin.z()) * inv_dz);
 
-        const Interval ix = Interval{std::min(t0x, t1x), std::max(t0x, t1x)};
-        const Interval iy = Interval{std::min(t0y, t1y), std::max(t0y, t1y)};
-        const Interval iz = Interval{std::min(t0z, t1z), std::max(t0z, t1z)};
+        const Interval hi = Interval::Intersection(Interval::Intersection(hxi, hyi), Interval::Intersection(hzi, interval));
 
-        if (Interval::OverLap(ix, iy) && Interval::OverLap(iy, iz) && Interval::OverLap(iz, ix))
-        {
-            return true;
-        }
+        if (hi.IsEmpty()) { return false; }
 
-        return false;
+        return true;
     }
 };
 

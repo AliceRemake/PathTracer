@@ -13,17 +13,15 @@
 #include <Core/Common.h>
 #include <Core/Primitive.h>
 #include <Core/Material.h>
-#include <Core/Scene.h>
 #include <Core/Camera.h>
 #include <Core/Image.h>
 #include <Core/Renderer.h>
-#include <Core/RNG.h>
 #include <Core/Debug.h>
 
 
 int main()
 {
-    Scene scene;
+    Ref<HittableList> scene = MakeRef<HittableList>();
     // scene.objects.emplace_back( // The Planet.
     //     MakeRef<Sphere>(
     //         MakeRef<LambertMaterial>(
@@ -95,12 +93,15 @@ int main()
 
     Ref<Image> earth_map = MakeRef<Image>(Image::From((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "earthmap.jpg").string().c_str()));
 
-    scene.objects.emplace_back(
+    scene->PushBack
+    (
         MakeRef<Sphere>(
             MakeRef<LambertMaterial>(MakeRef<ImageTexture2D>(earth_map)),
             Eigen::Vector3d{0.0, 0.0, 0.0}, 0.8
         )
     );
+
+    scene->InitializeBVH();
     // scene.objects.emplace_back(
     //     MakeRef<Sphere>(
     //         MakeRef<LambertMaterial>(MakeRef<CheckerTexture2D>(

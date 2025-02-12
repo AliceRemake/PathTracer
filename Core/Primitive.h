@@ -15,21 +15,19 @@
 
 #include <Core/Common.h>
 #include <Core/Hittable.h>
-#include <Core/Bounds.h>
 
 struct Primitive : Hittable
 {
     NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT
-    {
-        return HITTABLE_TYPE_PRIMITIVE_3D_START < ptr->Kind() && ptr->Kind() < HITTABLE_TYPE_PRIMITIVE_3D_END;
-    }
+    { return HITTABLE_KIND_PRIMITIVE_START < ptr->Kind() && ptr->Kind() < HITTABLE_KIND_PRIMITIVE_END; }
 
 protected:
-    NODISCARD explicit Primitive(HittableType hittable_type) NOEXCEPT : Hittable(hittable_type) {}
+    Ref<BoundingBox> bounding_box;
+    NODISCARD const Ref<BoundingBox>& GetBoundingBox() const NOEXCEPT OVERRIDE { return bounding_box; }
+    NODISCARD explicit Primitive(HittableKind hittable_type, const Ref<BoundingBox>& bounding_box) NOEXCEPT : Hittable(hittable_type), bounding_box(bounding_box) {}
 
-    Ref<AABB> aabb;
-
-    virtual void InitializeAABB() NOEXCEPT = 0;
+    // Interface.
+    NODISCARD virtual Ref<BoundingBox> CreateBoundingBox() const NOEXCEPT = 0;
 };
 
 // struct Plane final : Primitive3D
@@ -156,21 +154,19 @@ protected:
 
 struct Sphere final : Primitive
 {
-    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_TYPE_SPHERE;}
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_KIND_SPHERE;}
 
     Ref<Material> material;
     Eigen::Vector3d center;
     double radius;
 
     NODISCARD Sphere(const Ref<Material>& material, Eigen::Vector3d center, const double radius) NOEXCEPT
-    : Primitive(HITTABLE_TYPE_SPHERE), material(material), center(std::move(center)), radius(radius)
-    {
-        InitializeAABB();
-    }
+    : Primitive(HITTABLE_KIND_SPHERE, CreateBoundingBox()), material(material), center(std::move(center)), radius(radius)
+    {}
 
-    void InitializeAABB() NOEXCEPT OVERRIDE
+    NODISCARD Ref<BoundingBox> CreateBoundingBox() const NOEXCEPT OVERRIDE
     {
-        aabb = MakeRef<AABB>(center - Eigen::Vector3d{radius, radius, radius}, center + Eigen::Vector3d{radius, radius, radius});
+        return MakeRef<AABB>(center - Eigen::Vector3d{radius, radius, radius}, center + Eigen::Vector3d{radius, radius, radius});
     }
 
     NODISCARD Eigen::Vector2d Texcoord2D(const Eigen::Vector3d& hit_point) const NOEXCEPT
@@ -181,6 +177,7 @@ struct Sphere final : Primitive
         return { phi / (2.0 * PI), theta / PI };
     }
 
+    NODISCARD const Ref<BoundingBox>& GetBoundingBox() const NOEXCEPT OVERRIDE { return bounding_box; }
     NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
 };
 
