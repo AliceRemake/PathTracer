@@ -24,7 +24,7 @@ struct Primitive : Hittable
 protected:
     Ref<BoundingBox> bounding_box;
     NODISCARD const Ref<BoundingBox>& GetBoundingBox() const NOEXCEPT OVERRIDE { return bounding_box; }
-    NODISCARD explicit Primitive(HittableKind hittable_type, const Ref<BoundingBox>& bounding_box) NOEXCEPT : Hittable(hittable_type), bounding_box(bounding_box) {}
+    NODISCARD explicit Primitive(HittableKind hittable_type) NOEXCEPT : Hittable(hittable_type), bounding_box(nullptr) {}
 
     // Interface.
     NODISCARD virtual Ref<BoundingBox> CreateBoundingBox() const NOEXCEPT = 0;
@@ -161,8 +161,10 @@ struct Sphere final : Primitive
     double radius;
 
     NODISCARD Sphere(const Ref<Material>& material, Eigen::Vector3d center, const double radius) NOEXCEPT
-    : Primitive(HITTABLE_KIND_SPHERE, CreateBoundingBox()), material(material), center(std::move(center)), radius(radius)
-    {}
+    : Primitive(HITTABLE_KIND_SPHERE), material(material), center(std::move(center)), radius(radius)
+    {
+        bounding_box = CreateBoundingBox();
+    }
 
     NODISCARD Ref<BoundingBox> CreateBoundingBox() const NOEXCEPT OVERRIDE
     {
@@ -173,7 +175,7 @@ struct Sphere final : Primitive
     {
         const Eigen::Vector3d p = (hit_point - center).normalized();
         const double theta = std::acos(p.y());
-        const double phi = std::atan2(p.z(), p.x());
+        const double phi = std::atan2(p.z(), p.x()) + PI;
         return { phi / (2.0 * PI), theta / PI };
     }
 

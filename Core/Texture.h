@@ -73,8 +73,8 @@ struct ImageTexture2D final : Texture2D<Eigen::Vector3d>
 
     NODISCARD Eigen::Vector3d Sample(const Eigen::Vector2d &texcoord) const NOEXCEPT OVERRIDE
     {
-        const Eigen::Index col = std::clamp((Eigen::Index)((1.0 - texcoord.x()) * (double)image->Width()), (Eigen::Index)0, image->Width());
-        const Eigen::Index row = std::clamp((Eigen::Index)(texcoord.y() * (double)image->Height()), (Eigen::Index)0, image->Height());
+        const Eigen::Index col = (Eigen::Index)std::floor(texcoord.x() * (double)image->Width()) % image->Width();
+        const Eigen::Index row = (Eigen::Index)std::floor(texcoord.y() * (double)image->Height()) % image->Height();
         return (*image)(row, col).head(3);
     }
 };

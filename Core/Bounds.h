@@ -82,12 +82,9 @@ struct AABB final : BoundingBox
         const Interval hxi = Interval((xi.imin - ray.origin.x()) * inv_dx, (xi.imax - ray.origin.x()) * inv_dx);
         const Interval hyi = Interval((yi.imin - ray.origin.y()) * inv_dy, (yi.imax - ray.origin.y()) * inv_dy);
         const Interval hzi = Interval((zi.imin - ray.origin.z()) * inv_dz, (zi.imax - ray.origin.z()) * inv_dz);
-
         const Interval hi = Interval::Intersection(Interval::Intersection(hxi, hyi), Interval::Intersection(hzi, interval));
 
-        if (hi.IsEmpty()) { return false; }
-
-        return true;
+        return !hi.IsEmpty();
     }
 };
 

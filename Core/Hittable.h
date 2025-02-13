@@ -121,9 +121,23 @@ struct BVH final : Hittable
     NODISCARD explicit BVH(HittableList& hittable_list) NOEXCEPT
     : Hittable(HITTABLE_KIND_BVH), left(nullptr), right(nullptr)
     {
-        std::ranges::sort(hittable_list.data, [](const Ref<Hittable>& lhs, const Ref<Hittable>& rhs) -> bool
+        static Eigen::Index axis = 2;
+        axis = (axis + 1) % 3;
+        std::vector hittables(hittable_list.data);
+        std::ranges::sort(hittables, [](const Ref<Hittable>& lhs, const Ref<Hittable>& rhs) -> bool
         {
-            return lhs->GetBoundingBox()->Center().x() < rhs->GetBoundingBox()->Center().x();
+            if (axis == 0)
+            {
+                return lhs->GetBoundingBox()->Center().x() < rhs->GetBoundingBox()->Center().x();
+            }
+            else if (axis == 1)
+            {
+                return lhs->GetBoundingBox()->Center().y() < rhs->GetBoundingBox()->Center().y();
+            }
+            else // if (axis == 2)
+            {
+                return lhs->GetBoundingBox()->Center().z() < rhs->GetBoundingBox()->Center().z();
+            }
         });
 
         if (hittable_list.data.empty()) UNLIKELY

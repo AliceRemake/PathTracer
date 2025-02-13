@@ -119,7 +119,7 @@
 
 NODISCARD bool Sphere::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
 {
-    if (!bounding_box->Hit(ray, interval))
+    if (bounding_box && !bounding_box->Hit(ray, interval))
     {
         return false;
     }
