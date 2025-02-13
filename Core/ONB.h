@@ -17,18 +17,25 @@
 
 struct ONB
 {
-    Eigen::Vector3d u, v, w;
+    Eigen::Vector3d x, y, z;
 
-    NODISCARD explicit ONB(const Eigen::Vector3d& n) NOEXCEPT
+    NODISCARD explicit ONB(const Eigen::Vector3d& direction) NOEXCEPT
     {
-        w = n.normalized();
-        v = w.cross(Flt(w.x(), 1.0) ? Eigen::Vector3d{1, 0, 0} : Eigen::Vector3d{0, 1, 0}).normalized();
-        u = w.cross(v);
+        x = direction.normalized();
+        if (FIsZero((x - Eigen::Vector3d{0.0, 1.0, 0.0}).norm())) UNLIKELY
+        {
+            z = x.cross(Eigen::Vector3d{1.0, 0.0, 0.0}).normalized();
+        }
+        else
+        {
+            z = x.cross(Eigen::Vector3d{0.0, 1.0, 0.0}).normalized();
+        }
+        y = z.cross(x);
     }
 
     NODISCARD Eigen::Vector3d Transform(const Eigen::Vector3d& vec) const NOEXCEPT
     {
-        return vec.x() * u + vec.y() * v + vec.z() * w;
+        return vec.x() * x + vec.y() * y + vec.z() * z;
     }
 };
 

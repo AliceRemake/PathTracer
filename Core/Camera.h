@@ -14,6 +14,9 @@
 #define CAMERA_H
 
 #include <Core/Common.h>
+#include <Core/RNG.h>
+#include <Core/ONB.h>
+#include <Core/Ray.h>
 
 struct Camera
 {
@@ -31,11 +34,39 @@ struct Camera
     double fovy;
     double aspect;
     Eigen::Vector3d origin;
-    Eigen::Vector3d direction;
-    Eigen::Vector3d right;
-    Eigen::Vector3d up;
+    ONB onb;
 
-    NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
+    // NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
+
+public:
+    NODISCARD Camera(
+        CameraType type, const Eigen::Index height, const Eigen::Index width,
+        const double near, const double far, const double fovy,
+        const Eigen::Vector3d& origin, const Eigen::Vector3d& lookat
+    ) NOEXCEPT :
+        type(type), height(height), width(width),
+        near(near), far(far), fovy(fovy), aspect((double)width / (double)height),
+        origin(origin), onb(lookat - origin)
+    {}
+
+    NODISCARD Ray SampleRay(const Eigen::Index row, const Eigen::Index col) const NOEXCEPT
+    {
+        const double near_height = near * std::tan(fovy / 2.0) * 2.0;
+        const double near_width = near_height * aspect;
+        const double pixel_size = near_height / (double)height;
+        auto dist = RNG::UniformDist<double>(-pixel_size / 2.0, pixel_size / 2.0);
+        const Eigen::Vector3d local_coord =
+        {
+            near,
+            (near_height - pixel_size) / 2.0 - (double)row * pixel_size + RNG::Rand(dist),
+            (pixel_size - near_width) / 2.0 + (double)col * pixel_size + RNG::Rand(dist),
+        };
+        return Ray
+        {
+            .origin = origin,
+            .direction = onb.Transform(local_coord).normalized(),
+        };
+    }
 };
 
 #endif //CAMERA_H

@@ -17,7 +17,6 @@
 
 struct Hittable;
 struct Camera;
-struct Scene;
 struct Image;
 
 struct RenderConfig
