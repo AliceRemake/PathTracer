@@ -120,37 +120,43 @@ protected:
 //     NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
 // };
 
-// struct Quadrangle final : Primitive
-// {
-//     NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_TYPE_QUADRANGLE;}
-//
-//     Ref<Material> material;
-//     Eigen::Vector3d origin;
-//     Eigen::Vector3d u, v;
-//
-//     NODISCARD Quadrangle(const Ref<Material>& material, Eigen::Vector3d origin, Eigen::Vector3d u, Eigen::Vector3d v) NOEXCEPT
-//     : Primitive(HITTABLE_TYPE_QUADRANGLE), material(material), origin(std::move(origin)), u(std::move(u)), v(std::move(v))
-//     {}
-//
-//     void InitializeAABB() noexcept override {
-//
-//     }
-//
-//     NODISCARD Eigen::Vector2d Texcoord2D(const Eigen::Vector3d& hit_point) const NOEXCEPT
-//     {
-//         const Eigen::Vector3d p = hit_point - origin;
-//         const double u_length = std::sqrt(u.squaredNorm());
-//         const double v_length = std::sqrt(v.squaredNorm());
-//         const double a = p.dot(u) / u_length;
-//         const double b = p.dot(v) / v_length;
-//         const double cos_theta = u.dot(v) / (u_length * v_length);
-//         const double aa = (a + b) / (1 + cos_theta);
-//         const double bb = (a - b) / (1 - cos_theta);
-//         return { (aa + bb) / 2.0, (aa - bb) / 2.0 };
-//     }
-//
-//     NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
-// };
+struct Quadrangle final : Primitive
+{
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_KIND_QUADRANGLE;}
+
+    Ref<Material> material;
+    Eigen::Vector3d origin;
+    Eigen::Vector3d u, v;
+
+    NODISCARD Quadrangle(const Ref<Material>& material, Eigen::Vector3d origin, Eigen::Vector3d u, Eigen::Vector3d v) NOEXCEPT
+    : Primitive(HITTABLE_KIND_QUADRANGLE), material(material), origin(std::move(origin)), u(std::move(u)), v(std::move(v))
+    {
+        bounding_box = CreateBoundingBox();
+    }
+
+    NODISCARD Ref<BoundingBox> CreateBoundingBox() const NOEXCEPT OVERRIDE
+    {
+        return MakeRef<AABB>(
+            AABB(origin, origin + u),
+            AABB(origin + v, origin + u + v)
+        );
+    }
+
+    NODISCARD Eigen::Vector2d Texcoord2D(const Eigen::Vector3d& hit_point) const NOEXCEPT
+    {
+        const Eigen::Vector3d p = hit_point - origin;
+        const double u_length = std::sqrt(u.squaredNorm());
+        const double v_length = std::sqrt(v.squaredNorm());
+        const double a = p.dot(u) / u_length;
+        const double b = p.dot(v) / v_length;
+        const double cos_theta = u.dot(v) / (u_length * v_length);
+        const double aa = (a + b) / (1 + cos_theta);
+        const double bb = (a - b) / (1 - cos_theta);
+        return { (aa + bb) / 2.0, (aa - bb) / 2.0 };
+    }
+
+    NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
+};
 
 struct Sphere final : Primitive
 {
@@ -179,7 +185,6 @@ struct Sphere final : Primitive
         return { phi / (2.0 * PI), theta / PI };
     }
 
-    NODISCARD const Ref<BoundingBox>& GetBoundingBox() const NOEXCEPT OVERRIDE { return bounding_box; }
     NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
 };
 

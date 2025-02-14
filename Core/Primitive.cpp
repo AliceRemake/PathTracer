@@ -18,46 +18,6 @@
 // Ref: https://graphicscodex.com/app/app.html?page=_rn_rayCst
 // Ref: https://raytracing.github.io/books/RayTracingTheNextWeek.html#quadrilaterals/definingthequadrilateral
 
-// NODISCARD bool Plane::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
-// {
-//     const double rdn = ray.direction.dot(plane.head(3));
-//
-//     if (FIsZero(rdn)) { return false; }
-//
-//     const double t = - (ray.direction.dot(plane.head(3)) + plane.w()) / rdn;
-//
-//     if (!interval.Contain(t)) { return false; }
-//
-//     record.t = t;
-//     record.hit_point = ray.At(t);
-//     record.hit_normal = plane.head(3);
-//     record.material = material;
-//
-//     return true;
-// }
-//
-// NODISCARD bool Disk::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
-// {
-//     const double rdn = ray.direction.dot(normal);
-//
-//     if (FIsZero(rdn)) { return false; }
-//
-//     const Eigen::Vector oc = ray.origin - center;
-//     const double t = - normal.dot(oc) / rdn;
-//
-//     if (!interval.Contain(t)) { return false; }
-//
-//     record.t = t;
-//     record.hit_point = ray.At(t);
-//
-//     if (Fgt((record.hit_point - center).squaredNorm(), radius * radius)) { return false; }
-//
-//     record.hit_normal = normal;
-//     record.material = material;
-//
-//     return true;
-// }
-//
 // NODISCARD bool Triangle::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
 // {
 //     const Eigen::Vector3d v1v0 = v1 - v0;
@@ -87,35 +47,40 @@
 //     return true;
 // }
 
-// NODISCARD bool Quadrangle::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
-// {
-//     const Eigen::Vector3d n = u.cross(v).normalized();
-//
-//     const double rdn = ray.direction.dot(n);
-//
-//     if (FIsZero(rdn)) { return false; }
-//
-//     const double t = - (ray.direction.dot(n) - n.dot(origin)) / rdn;
-//
-//     if (!interval.Contain(t)) { return false; }
-//
-//     record.t = t;
-//     record.hit_point = ray.At(t);
-//
-//     const Eigen::Vector3d p = record.hit_point - origin;
-//     const Eigen::Vector3d w = n / n.dot(n);
-//
-//     const double alpha = w.dot(p.cross(v));
-//     const double beta = w.dot(u.cross(p));
-//
-//     if (FIsNegative(alpha) || FIsNegative(beta) || Fgt(alpha, 1.0) || Fgt(beta, 1.0)) { return false; }
-//
-//     record.hit_normal = n;
-//     record.texcoord2d = Texcoord2D(record.hit_point);
-//     record.material = material;
-//
-//     return true;
-// }
+NODISCARD bool Quadrangle::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
+{
+    if (bounding_box && !bounding_box->Hit(ray, interval))
+    {
+        return false;
+    }
+
+    const Eigen::Vector3d n = u.cross(v);
+
+    const double rdn = ray.direction.dot(n);
+
+    if (FIsZero(rdn)) { return false; }
+
+    const double t = (n.dot(origin) - n.dot(ray.origin)) / rdn;
+
+    if (!interval.Contain(t)) { return false; }
+
+    record.t = t;
+    record.hit_point = ray.At(t);
+
+    const Eigen::Vector3d p = record.hit_point - origin;
+    const Eigen::Vector3d w = n / n.dot(n);
+
+    const double alpha = w.dot(p.cross(v));
+    const double beta = w.dot(u.cross(p));
+
+    if (FIsNegative(alpha) || FIsNegative(beta) || Fgt(alpha, 1.0) || Fgt(beta, 1.0)) { return false; }
+
+    record.hit_normal = n;
+    record.texcoord2d = Texcoord2D(record.hit_point);
+    record.material = material;
+
+    return true;
+}
 
 NODISCARD bool Sphere::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
 {

@@ -59,6 +59,11 @@ struct AABB final : BoundingBox
         xi = (a.x() < b.x()) ? Interval{a.x(), b.x()} : Interval{b.x(), a.x()};
         yi = (a.y() < b.y()) ? Interval{a.y(), b.y()} : Interval{b.y(), a.y()};
         zi = (a.z() < b.z()) ? Interval{a.z(), b.z()} : Interval{b.z(), a.z()};
+
+        CONSTEXPR double delta = 0.0001;
+        if (xi.IsEmpty()) { xi = xi.Expand(delta); }
+        if (yi.IsEmpty()) { yi = yi.Expand(delta); }
+        if (zi.IsEmpty()) { zi = zi.Expand(delta); }
     }
 
     NODISCARD AABB(const AABB& a, const AABB& b) NOEXCEPT
@@ -87,143 +92,5 @@ struct AABB final : BoundingBox
         return !hi.IsEmpty();
     }
 };
-
-// struct BVH : Hittable
-// {
-//     Ref<AABB> l_aabb, r_aabb;
-//     Ref<AABB>
-//     Ref<Hittable> aabb;
-//
-//     NODISCARD bool Hit(const Ray &ray, const Interval &interval, HitRecord &record) const NOEXCEPT OVERRIDE
-//     {
-//         // Acc.
-//
-//
-//     }
-// };
-
-// struct BVH : Hittable
-// {
-//     Ref<Hittable> l, r;
-//     AABB aabb;
-//
-//     NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord& record) const NOEXCEPT OVERRIDE
-//     {
-//         bool l_result = false, r_result = false;
-//         if (l != nullptr) {l_result = l->Hit(ray, interval, record);}
-//         if (r != nullptr) {r_result = r->Hit(ray, interval, record);}
-//         return l_result || r_result;
-//     }
-// };
-
-// struct AABB2D
-// {
-//     Eigen::Vector2d vmin;
-//     Eigen::Vector2d vmax;
-//
-//     // Bound Two AABB2D lhs And rhs.
-//     NODISCARD FORCE_INLINE static AABB2D From(const AABB2D& lhs, const AABB2D& rhs) NOEXCEPT
-//     {
-//         return AABB2D
-//         {
-//             .vmin = lhs.vmin.array().min(rhs.vmin.array()),
-//             .vmax = lhs.vmax.array().max(rhs.vmax.array()),
-//         };
-//     }
-//
-//     NODISCARD FORCE_INLINE Eigen::Vector2d Center() const NOEXCEPT
-//     {
-//         return (vmin + vmax) / 2.0;
-//     }
-//
-//     NODISCARD FORCE_INLINE Eigen::Vector2d Radius() const NOEXCEPT
-//     {
-//         return (vmax - vmin) / 2.0;
-//     }
-//
-//     NODISCARD FORCE_INLINE bool Contain(const Eigen::Vector2d& v) const NOEXCEPT
-//     {
-//         return ((vmin.array() <= v.array()) && (vmax.array() <= v.array())).all();
-//     }
-//
-//     NODISCARD FORCE_INLINE bool Contain(const AABB2D& oth) const NOEXCEPT
-//     {
-//         return ((vmin.array() <= oth.vmin.array()) && (vmax.array() <= oth.vmax.array())).all();
-//     }
-//
-//     NODISCARD FORCE_INLINE bool Surround(const Eigen::Vector2d& v) const NOEXCEPT
-//     {
-//         return ((vmin.array() < v.array()) && (vmax.array() < v.array())).all();
-//     }
-//
-//     NODISCARD FORCE_INLINE bool Surround(const AABB2D& oth) const NOEXCEPT
-//     {
-//         return ((vmin.array() < oth.vmin.array()) && (vmax.array() < oth.vmax.array())).all();
-//     }
-//
-//     NODISCARD FORCE_INLINE static bool OverLap(const AABB2D& lhs, const AABB2D& rhs) NOEXCEPT
-//     {
-//         // Ignore Single Point OverLap.
-//         return ((lhs.vmin.array() < rhs.vmax.array()) && (rhs.vmin.array() < lhs.vmax.array())).all();
-//     }
-//
-//     static const AABB2D EMPTY;
-//     static const AABB2D UNIVERSE;
-// };
-//
-// struct AABB3D
-// {
-//     Eigen::Vector3d vmin;
-//     Eigen::Vector3d vmax;
-//
-//     // Bound Two AABB3D lhs And rhs.
-//     NODISCARD FORCE_INLINE static AABB3D From(const AABB3D& lhs, const AABB3D& rhs) NOEXCEPT
-//     {
-//         return AABB3D
-//         {
-//             .vmin = lhs.vmin.array().min(rhs.vmin.array()),
-//             .vmax = lhs.vmax.array().max(rhs.vmax.array()),
-//         };
-//     }
-//
-//     NODISCARD FORCE_INLINE Eigen::Vector3d Center() const NOEXCEPT
-//     {
-//         return (vmin + vmax) / 2.0;
-//     }
-//
-//     NODISCARD FORCE_INLINE Eigen::Vector3d Radius() const NOEXCEPT
-//     {
-//         return (vmax - vmin) / 2.0;
-//     }
-//
-//     NODISCARD FORCE_INLINE bool Contain(const Eigen::Vector3d& v) const NOEXCEPT
-//     {
-//         return ((vmin.array() <= v.array()) && (v.array() <= vmax.array())).all();
-//     }
-//
-//     NODISCARD FORCE_INLINE bool Contain(const AABB3D& oth) const NOEXCEPT
-//     {
-//         return ((vmin.array() <= oth.vmin.array()) && (oth.vmax.array() <= vmax.array())).all();
-//     }
-//
-//     NODISCARD FORCE_INLINE bool Surround(const Eigen::Vector3d& v) const NOEXCEPT
-//     {
-//         return ((vmin.array() < v.array()) && (v.array() < vmax.array())).all();
-//     }
-//
-//     NODISCARD FORCE_INLINE bool Surround(const AABB3D& oth) const NOEXCEPT
-//     {
-//         return ((vmin.array() < oth.vmin.array()) && (oth.vmax.array() < vmax.array())).all();
-//     }
-//
-//     NODISCARD FORCE_INLINE static bool OverLap(const AABB3D& lhs, const AABB3D& rhs) NOEXCEPT
-//     {
-//         // Ignore Single Point OverLap.
-//         return ((lhs.vmin.array() < rhs.vmax.array()) && (rhs.vmin.array() < lhs.vmax.array())).all();
-//     }
-//
-//     static const AABB3D EMPTY;
-//     static const AABB3D UNIVERSE;
-// };
 
 #endif //BOUNDS_H
