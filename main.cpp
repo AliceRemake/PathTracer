@@ -24,6 +24,43 @@ int main()
 {
     const Ref<HittableList> scene = MakeRef<HittableList>();
 
+    const auto red   = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.65, .05, .05}));
+    const auto white = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.73, .73, .73}));
+    const auto green = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.12, .45, .15}));
+    const auto light = MakeRef<EmissiveMaterial>(
+        MakeRef<PureColorTexture2D>(Eigen::Vector3d{15, 15, 15}),
+        MakeRef<DiffuseMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{1, 1, 1}))
+    );
+
+    // scene->PushBack(MakeRef<Quadrangle>(
+    //     green,
+    //     Eigen::Vector3d{555.00,   0.00,   0.00},
+    //     Eigen::Vector3d{  0.00,   0.00, 555.00},
+    //     Eigen::Vector3d{  0.00, 555.00,   0.00}
+    // ));
+    scene->PushBack(MakeRef<Triangle>(
+        green,
+        Eigen::Vector3d{555.00,   0.00,   0.00},
+        Eigen::Vector3d{  0.00,   0.00, 555.00},
+        Eigen::Vector3d{  0.00, 555.00,   0.00}
+    ));
+    scene->PushBack(MakeRef<Triangle>(
+        green,
+        Eigen::Vector3d{555.00, 555.00, 555.00},
+        Eigen::Vector3d{  0.00,   0.00,-555.00},
+        Eigen::Vector3d{  0.00,-555.00,   0.00}
+    ));
+    scene->PushBack(MakeRef<Quadrangle>(
+        red,
+        Eigen::Vector3d{0.00,   0.00,   0.00},
+        Eigen::Vector3d{0.00, 555.00,   0.00},
+        Eigen::Vector3d{0.00,   0.00, 555.00}
+    ));
+    scene->PushBack(MakeRef<Quadrangle>(light, Eigen::Vector3d(343, 554, 332), Eigen::Vector3d(0,0,-105), Eigen::Vector3d(-130,0,0)));
+    scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(0,0,0), Eigen::Vector3d(0,0,555), Eigen::Vector3d(555,0,0)));
+    scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(555,555,555), Eigen::Vector3d(-555,0,0), Eigen::Vector3d(0,0,-555)));
+    scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(0,0,555), Eigen::Vector3d(0,555,0), Eigen::Vector3d(555,0,0)));
+
     // {
     //     fmt::print("Building BVH ...\n");
     //     const auto st = Debug::Now();
@@ -32,7 +69,14 @@ int main()
     //     fmt::print("Build BVH Done! Time Escape: {} ms\n", Debug::MicroSeconds(ed - st));
     // }
 
-    const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.xml").string().c_str());
+    // const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.xml").string().c_str());
+    const Camera camera(
+        Camera::CAMERA_TYPE_PERSPECTIVE, 600, 600,
+        1.0, 1000.0, ToRadians(40.0),
+        Eigen::Vector3d{278, 278, -800},
+        Eigen::Vector3d{278, 278, 0},
+        Eigen::Vector3d{0.0, 0.0, 0.0}
+    );
 
     CONSTEXPR RenderConfig config
     {

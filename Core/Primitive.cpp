@@ -18,34 +18,35 @@
 // Ref: https://graphicscodex.com/app/app.html?page=_rn_rayCst
 // Ref: https://raytracing.github.io/books/RayTracingTheNextWeek.html#quadrilaterals/definingthequadrilateral
 
-// NODISCARD bool Triangle::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
-// {
-//     const Eigen::Vector3d v1v0 = v1 - v0;
-//     const Eigen::Vector3d v2v0 = v2 - v0;
-//     const Eigen::Vector3d rov0 = ray.origin - v0;
-//     const Eigen::Vector3d n = v1v0.cross(v2v0);
-//
-//     const double rdn = ray.direction.dot(n);
-//
-//     if (FIsZero(rdn)) { return false; }
-//
-//     const Eigen::Vector3d q = rov0.cross(ray.direction);
-//     const double d = 1.0 / rdn;
-//     const double u = d * -q.dot(v2v0);
-//     const double v = d * q.dot(v1v0);
-//     const double t = d * -n.dot(rov0);
-//
-//     if (!interval.Contain(t)) { return false; }
-//
-//     if (FIsNegative(u) || FIsNegative(v) || Fgt(u + v, 1.0)) { return false; }
-//
-//     record.t = t;
-//     record.hit_point = ray.At(t);
-//     record.hit_normal = n;
-//     record.material = material;
-//
-//     return true;
-// }
+NODISCARD bool Triangle::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
+{
+    const Eigen::Vector3d& v1v0 = u;
+    const Eigen::Vector3d& v2v0 = v;
+    const Eigen::Vector3d rov0 = ray.origin - origin;
+    const Eigen::Vector3d n = v1v0.cross(v2v0);
+
+    const double rdn = ray.direction.dot(n);
+
+    if (FIsZero(rdn)) { return false; }
+
+    const Eigen::Vector3d q = rov0.cross(ray.direction);
+    const double d = 1.0 / rdn;
+    const double uu = d * -q.dot(v2v0);
+    const double vv = d * q.dot(v1v0);
+    const double t = d * -n.dot(rov0);
+
+    if (!interval.Contain(t)) { return false; }
+
+    if (FIsNegative(uu) || FIsNegative(vv) || Fgt(uu + vv, 1.0)) { return false; }
+
+    record.t = t;
+    record.hit_point = ray.At(t);
+    record.hit_normal = n.normalized();
+    record.texcoord2d = Eigen::Vector2d{uu, vv};
+    record.material = material;
+
+    return true;
+}
 
 NODISCARD bool Quadrangle::Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT
 {

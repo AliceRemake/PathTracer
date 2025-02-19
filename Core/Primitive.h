@@ -120,6 +120,55 @@ protected:
 //     NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
 // };
 
+struct Triangle final : Primitive
+{
+    NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_KIND_TRIANGLE;}
+
+    Ref<Material> material;
+    Eigen::Vector3d origin;
+    Eigen::Vector3d u, v;
+
+    NODISCARD Triangle(const Ref<Material>& material, Eigen::Vector3d origin, Eigen::Vector3d u, Eigen::Vector3d v) NOEXCEPT
+    : Primitive(HITTABLE_KIND_QUADRANGLE), material(material), origin(std::move(origin)), u(std::move(u)), v(std::move(v))
+    {
+        // NOTE: No Need.
+        // bounding_box = CreateBoundingBox();
+    }
+
+    NODISCARD Ref<BoundingBox> CreateBoundingBox() const NOEXCEPT OVERRIDE
+    {
+        Eigen::Vector3d p0 = origin + u;
+        Eigen::Vector3d p1 = origin + v;
+        return MakeRef<AABB>(
+            Eigen::Vector3d {
+                std::min(std::min(origin.x(), origin.y()), origin.z()),
+                std::min(std::min(p0.x(), p0.y()), p0.z()),
+                std::min(std::min(p1.x(), p1.y()), p1.z())
+            },
+            Eigen::Vector3d {
+                std::max(std::max(origin.x(), origin.y()), origin.z()),
+                std::max(std::max(p0.x(), p0.y()), p0.z()),
+                std::max(std::max(p1.x(), p1.y()), p1.z())
+            }
+        );
+    }
+
+    NODISCARD Eigen::Vector2d Texcoord2D(const Eigen::Vector3d& hit_point) const NOEXCEPT
+    {
+        const Eigen::Vector3d p = hit_point - origin;
+        const double u_length = std::sqrt(u.squaredNorm());
+        const double v_length = std::sqrt(v.squaredNorm());
+        const double a = p.dot(u) / u_length;
+        const double b = p.dot(v) / v_length;
+        const double cos_theta = u.dot(v) / (u_length * v_length);
+        const double aa = (a + b) / (1 + cos_theta);
+        const double bb = (a - b) / (1 - cos_theta);
+        return { (aa + bb) / 2.0, (aa - bb) / 2.0 };
+    }
+
+    NODISCARD bool Hit(const Ray &ray, const Interval& interval, HitRecord &record) const NOEXCEPT OVERRIDE;
+};
+
 struct Quadrangle final : Primitive
 {
     NODISCARD CONSTEXPR FORCE_INLINE static bool ClassOf(const Hittable* ptr) NOEXCEPT {return ptr->Kind() == HITTABLE_KIND_QUADRANGLE;}
