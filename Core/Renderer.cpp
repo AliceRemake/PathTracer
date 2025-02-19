@@ -43,7 +43,7 @@ void Renderer::Render(const Camera& camera, const Ref<Hittable>& hittable, const
                 for (size_t i = 0; i < config.SPP; ++i)
                 {
                     const Ray sample_ray = camera.SampleRay(row, col);
-                    color += Ray::RayCast(sample_ray, hittable, 0);
+                    color += Ray::RayCast(sample_ray, hittable, 0, config.stop_prob);
                 }
                 color *= spp_norm_factor;
                 auto& pixel = film(row, col);

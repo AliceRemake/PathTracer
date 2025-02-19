@@ -68,7 +68,7 @@ int main()
     CONSTEXPR RenderConfig config
     {
         .SPP = 4096,
-        // .stop_prob = 0.02,
+        .stop_prob = 0.02,
     };
 
     Image film;

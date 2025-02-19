@@ -16,7 +16,7 @@
 #include <Core/Material.h>
 
 
-NODISCARD Eigen::Vector3d Ray::RayCast(const Ray& ray, const Ref<Hittable>& hittable, const Eigen::Index bounce) NOEXCEPT // NOLINT(*-no-recursion)
+NODISCARD Eigen::Vector3d Ray::RayCast(const Ray& ray, const Ref<Hittable>& hittable, const Eigen::Index bounce, const double stop_prob) NOEXCEPT // NOLINT(*-no-recursion)
 {
     HitRecord record;
 
@@ -29,27 +29,25 @@ NODISCARD Eigen::Vector3d Ray::RayCast(const Ray& ray, const Ref<Hittable>& hitt
         // return (1.0 - u) * Eigen::Vector3d{1.0, 1.0, 1.0} + u * Eigen::Vector3d{0.5, 0.7, 1.0};
     }
 
-    if (bounce <= 64)
+    if (bounce <= 3)
     {
         // In General, Scatter The Ray, Trace The Scattered Ray, Shade The Color.
         const Ray scattered_ray = record.material->Scatter(ray, record);
-        const Eigen::Vector3d color = RayCast(scattered_ray, hittable, bounce + 1);
+        const Eigen::Vector3d color = RayCast(scattered_ray, hittable, bounce + 1, stop_prob);
         return record.material->Radiance(ray, record, color) + record.material->Emission(record.texcoord2d);
     }
 
-    return {0.0, 0.0, 0.0};
-    // else // Use Russian Roulette.
-    // {
-    //
-    //     if (auto dist = RNG::UniformDist<double>(0, 1); RNG::Rand(dist) < stop_prob)
-    //     {
-    //         return Eigen::Vector3d{0.0, 0.0, 0.0};
-    //     }
-    //     else
-    //     {
-    //         const Ray scattered_ray = record.material->Scatter(ray, record);
-    //         const Eigen::Vector3d color = RayCast(scattered_ray, hittable, bounce + 1);
-    //         return record.material->Shading(ray, record, (1 - stop_prob) * color) + record.material->Emitted(record.texcoord2d);
-    //     }
-    // }
+    else // Use Russian Roulette.
+    {
+        if (auto dist = RNG::UniformDist<double>(0, 1); RNG::Rand(dist) < stop_prob)
+        {
+            return Eigen::Vector3d{0.0, 0.0, 0.0};
+        }
+        else
+        {
+            const Ray scattered_ray = record.material->Scatter(ray, record);
+            const Eigen::Vector3d color = RayCast(scattered_ray, hittable, bounce + 1, stop_prob);
+            return record.material->Radiance(ray, record, (1 - stop_prob) * color) + record.material->Emission(record.texcoord2d);
+        }
+    }
 }
