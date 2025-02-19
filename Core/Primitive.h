@@ -131,7 +131,8 @@ struct Quadrangle final : Primitive
     NODISCARD Quadrangle(const Ref<Material>& material, Eigen::Vector3d origin, Eigen::Vector3d u, Eigen::Vector3d v) NOEXCEPT
     : Primitive(HITTABLE_KIND_QUADRANGLE), material(material), origin(std::move(origin)), u(std::move(u)), v(std::move(v))
     {
-        bounding_box = CreateBoundingBox();
+        // NOTE: No Need.
+        // bounding_box = CreateBoundingBox();
     }
 
     NODISCARD Ref<BoundingBox> CreateBoundingBox() const NOEXCEPT OVERRIDE
@@ -169,7 +170,8 @@ struct Sphere final : Primitive
     NODISCARD Sphere(const Ref<Material>& material, Eigen::Vector3d center, const double radius) NOEXCEPT
     : Primitive(HITTABLE_KIND_SPHERE), material(material), center(std::move(center)), radius(radius)
     {
-        bounding_box = CreateBoundingBox();
+        // NOTE: No Need.
+        // bounding_box = CreateBoundingBox();
     }
 
     NODISCARD Ref<BoundingBox> CreateBoundingBox() const NOEXCEPT OVERRIDE

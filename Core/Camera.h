@@ -18,6 +18,8 @@
 #include <Core/ONB.h>
 #include <Core/Ray.h>
 
+#include <utility>
+
 struct Camera
 {
     enum CameraType
@@ -35,6 +37,7 @@ struct Camera
     double aspect;
     Eigen::Vector3d origin;
     ONB onb;
+    Eigen::Vector3d background;
 
     // NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
 
@@ -42,11 +45,11 @@ public:
     NODISCARD Camera(
         CameraType type, const Eigen::Index height, const Eigen::Index width,
         const double near, const double far, const double fovy,
-        const Eigen::Vector3d& origin, const Eigen::Vector3d& lookat
+        const Eigen::Vector3d& origin, const Eigen::Vector3d& lookat, Eigen::Vector3d  background
     ) NOEXCEPT :
         type(type), height(height), width(width),
         near(near), far(far), fovy(fovy), aspect((double)width / (double)height),
-        origin(origin), onb(lookat - origin)
+        origin(origin), onb(lookat - origin), background(std::move(background))
     {}
 
     NODISCARD Ray SampleRay(const Eigen::Index row, const Eigen::Index col) const NOEXCEPT

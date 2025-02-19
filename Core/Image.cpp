@@ -69,10 +69,10 @@ NODISCARD bool Image::ToPNG(const Image& image, const char* filename) NOEXCEPT
             for (Eigen::Index i = (Eigen::Index)thread_begin; i < (Eigen::Index)thread_end; ++i)
             {
                 Eigen::Vector4d gamma_correction = Eigen::round(Eigen::pow(image.Data()[i].array(), 1.0 / 2.2) * 255.0);
-                buffer[(i << 2) | 0] = (stbi_uc)gamma_correction.x();
-                buffer[(i << 2) | 1] = (stbi_uc)gamma_correction.y();
-                buffer[(i << 2) | 2] = (stbi_uc)gamma_correction.z();
-                buffer[(i << 2) | 3] = (stbi_uc)gamma_correction.w();
+                buffer[(i << 2) | 0] = (stbi_uc)std::clamp((int)gamma_correction.x(), 0, 255);
+                buffer[(i << 2) | 1] = (stbi_uc)std::clamp((int)gamma_correction.y(), 0, 255);
+                buffer[(i << 2) | 2] = (stbi_uc)std::clamp((int)gamma_correction.z(), 0, 255);
+                buffer[(i << 2) | 3] = (stbi_uc)std::clamp((int)gamma_correction.w(), 0, 255);
             }
         }
     );

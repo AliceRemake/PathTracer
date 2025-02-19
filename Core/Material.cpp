@@ -24,7 +24,7 @@ NODISCARD Ray DiffuseMaterial::Scatter(const Ray &ray UNUSED, HitRecord &record)
     };
 }
 
-NODISCARD Eigen::Vector3d DiffuseMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
+NODISCARD Eigen::Vector3d DiffuseMaterial::Radiance(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
 {
     if (color_tex == nullptr)
     {
@@ -46,7 +46,7 @@ NODISCARD Ray LambertMaterial::Scatter(const Ray &ray UNUSED, HitRecord &record)
     };
 }
 
-NODISCARD Eigen::Vector3d LambertMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
+NODISCARD Eigen::Vector3d LambertMaterial::Radiance(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
 {
     if (color_tex == nullptr)
     {
@@ -68,7 +68,7 @@ NODISCARD Ray MetalMaterial::Scatter(const Ray &ray, HitRecord &record) const NO
     };
 }
 
-NODISCARD Eigen::Vector3d MetalMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
+NODISCARD Eigen::Vector3d MetalMaterial::Radiance(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
 {
     if (color_tex == nullptr)
     {
@@ -116,26 +116,27 @@ NODISCARD Ray DielectricMaterial::Scatter(const Ray &ray, HitRecord &record) con
     }
 }
 
-NODISCARD Eigen::Vector3d DielectricMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record, const Eigen::Vector3d& color) const NOEXCEPT
+NODISCARD Eigen::Vector3d DielectricMaterial::Radiance(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color) const NOEXCEPT
 {
-    if (record.scatter_type == HitRecord::SCATTER_TYPE_REFLECT)
-    {
-        // return color_tex->Sample(record.texcoord2d).array() * color.array();
-        return color.array();
-    }
-    else // if (record.scatter_type == HitRecord::SCATTER_TYPE_REFRACT)
-    {
-        // return (1.0 - color_tex->Sample(record.texcoord2d).array()) * color.array();
-        return color.array();
-    }
+    return color.array();
+    // if (record.scatter_type == HitRecord::SCATTER_TYPE_REFLECT)
+    // {
+    //     // return color_tex->Sample(record.texcoord2d).array() * color.array();
+    //     return color.array();
+    // }
+    // else // if (record.scatter_type == HitRecord::SCATTER_TYPE_REFRACT)
+    // {
+    //     // return (1.0 - color_tex->Sample(record.texcoord2d).array()) * color.array();
+    //     return color.array();
+    // }
 }
 
-NODISCARD Ray PhongMaterial::Scatter(const Ray &ray UNUSED, HitRecord &record UNUSED) const NOEXCEPT
+NODISCARD Ray EmissiveMaterial::Scatter(const Ray &ray UNUSED, HitRecord &record UNUSED) const NOEXCEPT
 {
-    exit(0);
+    return ref->Scatter(ray, record);
 }
 
-NODISCARD Eigen::Vector3d PhongMaterial::Shading(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color UNUSED) const NOEXCEPT
+NODISCARD Eigen::Vector3d EmissiveMaterial::Radiance(const Ray& ray UNUSED, const HitRecord& record UNUSED, const Eigen::Vector3d& color UNUSED) const NOEXCEPT
 {
-    exit(0);
+    return ref->Radiance(ray, record, color);
 }

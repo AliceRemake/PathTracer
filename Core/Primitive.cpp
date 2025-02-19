@@ -58,7 +58,7 @@ NODISCARD bool Quadrangle::Hit(const Ray &ray, const Interval& interval, HitReco
 
     const double rdn = ray.direction.dot(n);
 
-    if (FIsZero(rdn)) { return false; }
+    if (FIsZero(rdn) || FIsPositive(rdn)) { return false; }
 
     const double t = (n.dot(origin) - n.dot(ray.origin)) / rdn;
 
@@ -75,7 +75,7 @@ NODISCARD bool Quadrangle::Hit(const Ray &ray, const Interval& interval, HitReco
 
     if (FIsNegative(alpha) || FIsNegative(beta) || Fgt(alpha, 1.0) || Fgt(beta, 1.0)) { return false; }
 
-    record.hit_normal = n;
+    record.hit_normal = n.normalized();
     record.texcoord2d = Texcoord2D(record.hit_point);
     record.material = material;
 
