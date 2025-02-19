@@ -39,21 +39,35 @@ struct Camera
     ONB onb;
     Eigen::Vector3d background;
 
-    // NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
-
 public:
     NODISCARD Camera(
         CameraType type, const Eigen::Index height, const Eigen::Index width,
         const double near, const double far, const double fovy,
-        const Eigen::Vector3d& origin, const Eigen::Vector3d& lookat, Eigen::Vector3d  background
+        const Eigen::Vector3d& origin, const Eigen::Vector3d& lookat,
+        Eigen::Vector3d  background
     ) NOEXCEPT :
         type(type), height(height), width(width),
         near(near), far(far), fovy(fovy), aspect((double)width / (double)height),
-        origin(origin), onb(lookat - origin), background(std::move(background))
+        origin(origin), onb((lookat - origin).normalized()), background(std::move(background))
     {}
+
+    NODISCARD Camera(
+        CameraType type, const Eigen::Index height, const Eigen::Index width,
+        const double near, const double far, const double fovy,
+        const Eigen::Vector3d& origin, const Eigen::Vector3d& lookat,
+        const Eigen::Vector3d& up,
+        Eigen::Vector3d  background
+    ) NOEXCEPT :
+        type(type), height(height), width(width),
+        near(near), far(far), fovy(fovy), aspect((double)width / (double)height),
+        origin(origin), onb((lookat - origin).normalized(), up), background(std::move(background))
+    {}
+
+    NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
 
     NODISCARD Ray SampleRay(const Eigen::Index row, const Eigen::Index col) const NOEXCEPT
     {
+        // TODO: add jitter
         const double near_height = near * std::tan(fovy / 2.0) * 2.0;
         const double near_width = near_height * aspect;
         const double pixel_size = near_height / (double)height;

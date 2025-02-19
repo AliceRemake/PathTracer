@@ -21,7 +21,7 @@ struct ONB
 
     NODISCARD explicit ONB(const Eigen::Vector3d& direction) NOEXCEPT
     {
-        x = direction.normalized();
+        x = direction;
         if (FIsZero((x - Eigen::Vector3d{0.0, 1.0, 0.0}).norm())) UNLIKELY
         {
             z = x.cross(Eigen::Vector3d{1.0, 0.0, 0.0}).normalized();
@@ -30,6 +30,14 @@ struct ONB
         {
             z = x.cross(Eigen::Vector3d{0.0, 1.0, 0.0}).normalized();
         }
+        y = z.cross(x);
+    }
+
+    NODISCARD ONB(const Eigen::Vector3d& direction, const Eigen::Vector3d& up) NOEXCEPT
+    {
+        x = direction;
+        ASSERT(!FIsZero((x - up).norm()));
+        z = x.cross(up).normalized();
         y = z.cross(x);
     }
 
