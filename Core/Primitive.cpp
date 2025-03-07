@@ -42,7 +42,7 @@ NODISCARD bool Triangle::Hit(const Ray &ray, const Interval& interval, HitRecord
     record.t = t;
     record.hit_point = ray.At(t);
     record.hit_normal = n.normalized();
-    record.texcoord2d = Eigen::Vector2d{uu, vv};
+    record.texcoord = Eigen::Vector2d{uu, vv};
     record.material = material;
 
     return true;
@@ -77,7 +77,7 @@ NODISCARD bool Quadrangle::Hit(const Ray &ray, const Interval& interval, HitReco
     if (FIsNegative(alpha) || FIsNegative(beta) || Fgt(alpha, 1.0) || Fgt(beta, 1.0)) { return false; }
 
     record.hit_normal = n.normalized();
-    record.texcoord2d = Texcoord2D(record.hit_point);
+    record.texcoord = Texcoord2D(record.hit_point);
     record.material = material;
 
     return true;
@@ -109,7 +109,7 @@ NODISCARD bool Sphere::Hit(const Ray &ray, const Interval& interval, HitRecord &
     record.t = t;
     record.hit_point = ray.At(t);
     record.hit_normal = (record.hit_point - center).normalized();
-    record.texcoord2d = Texcoord2D(record.hit_point);
+    record.texcoord = Texcoord2D(record.hit_point);
     record.material = material;
 
     return true;

@@ -12,7 +12,7 @@
 
 #include <Core/Debug.h>
 
-void Debug::Dump(FILE* fp, const Eigen::Vector3f& v) NOEXCEPT
+void Debug::Dump(FILE* fp, const Eigen::Vector3d& v) NOEXCEPT
 {
     #ifdef NDEBUG
     Unuse(fp); Unuse(v);

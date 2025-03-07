@@ -78,12 +78,14 @@ TARGET_SOURCES(PathTracer PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/ThreadPool.cpp
     ${CMAKE_SOURCE_DIR}/Core/Parallel.h
     ${CMAKE_SOURCE_DIR}/Core/Parallel.cpp
+    ${CMAKE_SOURCE_DIR}/Core/ONB.h
+    ${CMAKE_SOURCE_DIR}/Core/ONB.cpp
     ${CMAKE_SOURCE_DIR}/Core/Interval.h
     ${CMAKE_SOURCE_DIR}/Core/Interval.cpp
     ${CMAKE_SOURCE_DIR}/Core/Image.h
     ${CMAKE_SOURCE_DIR}/Core/Image.cpp
-    ${CMAKE_SOURCE_DIR}/Core/ONB.h
-    ${CMAKE_SOURCE_DIR}/Core/ONB.cpp
+    ${CMAKE_SOURCE_DIR}/Core/Sampler.h
+    ${CMAKE_SOURCE_DIR}/Core/Sampler.cpp
     ${CMAKE_SOURCE_DIR}/Core/Material.h
     ${CMAKE_SOURCE_DIR}/Core/Material.cpp
     ${CMAKE_SOURCE_DIR}/Core/Texture.h
@@ -94,8 +96,6 @@ TARGET_SOURCES(PathTracer PRIVATE
     ${CMAKE_SOURCE_DIR}/Core/Primitive.cpp
     ${CMAKE_SOURCE_DIR}/Core/Mesh.h
     ${CMAKE_SOURCE_DIR}/Core/Mesh.cpp
-    ${CMAKE_SOURCE_DIR}/Core/Loader.h
-    ${CMAKE_SOURCE_DIR}/Core/Loader.cpp
     ${CMAKE_SOURCE_DIR}/Core/Ray.h
     ${CMAKE_SOURCE_DIR}/Core/Ray.cpp
     ${CMAKE_SOURCE_DIR}/Core/Camera.h

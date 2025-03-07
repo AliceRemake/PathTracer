@@ -17,8 +17,7 @@
 #include <Core/RNG.h>
 #include <Core/ONB.h>
 #include <Core/Ray.h>
-
-#include <utility>
+#include <Core/Texture.h>
 
 struct Camera
 {
@@ -37,6 +36,7 @@ struct Camera
     double aspect;
     Eigen::Vector3d origin;
     ONB onb;
+    std::unordered_map<std::string, Ref<Texture2D<Eigen::Vector3d>>> lights;
     Eigen::Vector3d background;
 
 public:
@@ -44,11 +44,12 @@ public:
         CameraType type, const Eigen::Index height, const Eigen::Index width,
         const double near, const double far, const double fovy,
         const Eigen::Vector3d& origin, const Eigen::Vector3d& lookat,
+        std::unordered_map<std::string, Ref<Texture2D<Eigen::Vector3d>>> lights,
         Eigen::Vector3d  background
     ) NOEXCEPT :
         type(type), height(height), width(width),
         near(near), far(far), fovy(fovy), aspect((double)width / (double)height),
-        origin(origin), onb((lookat - origin).normalized()), background(std::move(background))
+        origin(origin), onb((lookat - origin).normalized()), lights(std::move(lights)), background(std::move(background))
     {}
 
     NODISCARD Camera(
@@ -56,33 +57,31 @@ public:
         const double near, const double far, const double fovy,
         const Eigen::Vector3d& origin, const Eigen::Vector3d& lookat,
         const Eigen::Vector3d& up,
+        std::unordered_map<std::string, Ref<Texture2D<Eigen::Vector3d>>> lights,
         Eigen::Vector3d  background
     ) NOEXCEPT :
         type(type), height(height), width(width),
         near(near), far(far), fovy(fovy), aspect((double)width / (double)height),
-        origin(origin), onb((lookat - origin).normalized(), up), background(std::move(background))
+        origin(origin), onb((lookat - origin).normalized(), up), lights(std::move(lights)), background(std::move(background))
     {}
 
     NODISCARD static Camera FromXML(const char* filename) NOEXCEPT;
 
-    NODISCARD Ray SampleRay(const Eigen::Index row, const Eigen::Index col) const NOEXCEPT
+    // NODISCARD Ray SampleRay(const Eigen::Index row, const Eigen::Index col) const NOEXCEPT
+    NODISCARD Ray SampleRay(const Eigen::Index row, const Eigen::Index col, const Eigen::Index jitter_size, const Eigen::Index jitter_row, const Eigen::Index jitter_col) const NOEXCEPT
     {
-        // TODO: add jitter
         const double near_height = near * std::tan(fovy / 2.0) * 2.0;
         const double near_width = near_height * aspect;
         const double pixel_size = near_height / (double)height;
-        auto dist = RNG::UniformDist<double>(-pixel_size / 2.0, pixel_size / 2.0);
+        const double sub_pixel_size = pixel_size / (double)jitter_size;
+        auto dist = RNG::UniformDist<double>(-sub_pixel_size / 2.0, sub_pixel_size / 2.0);
         const Eigen::Vector3d local_coord =
         {
             near,
-            (near_height - pixel_size) / 2.0 - (double)row * pixel_size + RNG::Rand(dist),
-            (pixel_size - near_width) / 2.0 + (double)col * pixel_size + RNG::Rand(dist),
+            ((near_height - sub_pixel_size) / 2.0 - (double)row * pixel_size - (double)jitter_row * sub_pixel_size) + RNG::Rand(dist),
+            ((sub_pixel_size - near_width) / 2.0 + (double)col * pixel_size + (double)jitter_col * sub_pixel_size) + RNG::Rand(dist),
         };
-        return Ray
-        {
-            .origin = origin,
-            .direction = onb.Transform(local_coord).normalized(),
-        };
+        return { origin, onb.Transform(local_coord).normalized() };
     }
 };
 

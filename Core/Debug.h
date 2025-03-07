@@ -18,7 +18,7 @@
 
 struct Debug
 {
-    static void Dump(FILE* fp, const Eigen::Vector3f& v) NOEXCEPT;
+    static void Dump(FILE* fp, const Eigen::Vector3d& v) NOEXCEPT;
 
     template<class T> FORCE_INLINE static void Unuse(T&& arg) NOEXCEPT { (void)arg; }
     template<class T, class... Args> FORCE_INLINE static void Unuse(T&& arg, Args&&... args) NOEXCEPT { (void)arg; Unuse(std::forward<Args>(args)...); }
@@ -26,9 +26,6 @@ struct Debug
     template<class... Args>
     FORCE_INLINE static void Print(fmt::format_string<Args...>&& format, Args&&... args) NOEXCEPT
     {
-        #ifdef NDEBUG
-        Unuse(format); Unuse(std::forward<Args>(args)...);
-        #else
         static std::mutex mutex;
         {
             std::unique_lock lock(mutex);
@@ -36,7 +33,6 @@ struct Debug
             fmt::fprintf(stdout, "\n");
             fflush(stdout);
         }
-        #endif
     }
 
     NODISCARD FORCE_INLINE static std::chrono::high_resolution_clock::time_point Now() NOEXCEPT

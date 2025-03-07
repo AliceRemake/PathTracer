@@ -11,56 +11,17 @@
 
 
 #include <Core/Common.h>
-#include <Core/Primitive.h>
-#include <Core/RNG.h>
-#include <Core/Material.h>
 #include <Core/Camera.h>
 #include <Core/Image.h>
 #include <Core/Renderer.h>
 #include <Core/Debug.h>
+#include <Core/Mesh.h>
+#include <Core/Primitive.h>
+#include <Core/ThreadPool.h>
 
 
 int main()
 {
-    const Ref<HittableList> scene = MakeRef<HittableList>();
-
-    const auto red   = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.65, .05, .05}));
-    const auto white = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.73, .73, .73}));
-    const auto green = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.12, .45, .15}));
-    const auto light = MakeRef<EmissiveMaterial>(
-        MakeRef<PureColorTexture2D>(Eigen::Vector3d{15, 15, 15}),
-        MakeRef<DiffuseMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{1, 1, 1}))
-    );
-
-    // scene->PushBack(MakeRef<Quadrangle>(
-    //     green,
-    //     Eigen::Vector3d{555.00,   0.00,   0.00},
-    //     Eigen::Vector3d{  0.00,   0.00, 555.00},
-    //     Eigen::Vector3d{  0.00, 555.00,   0.00}
-    // ));
-    scene->PushBack(MakeRef<Triangle>(
-        green,
-        Eigen::Vector3d{555.00,   0.00,   0.00},
-        Eigen::Vector3d{  0.00,   0.00, 555.00},
-        Eigen::Vector3d{  0.00, 555.00,   0.00}
-    ));
-    scene->PushBack(MakeRef<Triangle>(
-        green,
-        Eigen::Vector3d{555.00, 555.00, 555.00},
-        Eigen::Vector3d{  0.00,   0.00,-555.00},
-        Eigen::Vector3d{  0.00,-555.00,   0.00}
-    ));
-    scene->PushBack(MakeRef<Quadrangle>(
-        red,
-        Eigen::Vector3d{0.00,   0.00,   0.00},
-        Eigen::Vector3d{0.00, 555.00,   0.00},
-        Eigen::Vector3d{0.00,   0.00, 555.00}
-    ));
-    scene->PushBack(MakeRef<Quadrangle>(light, Eigen::Vector3d(343, 554, 332), Eigen::Vector3d(0,0,-105), Eigen::Vector3d(-130,0,0)));
-    scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(0,0,0), Eigen::Vector3d(0,0,555), Eigen::Vector3d(555,0,0)));
-    scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(555,555,555), Eigen::Vector3d(-555,0,0), Eigen::Vector3d(0,0,-555)));
-    scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(0,0,555), Eigen::Vector3d(0,555,0), Eigen::Vector3d(555,0,0)));
-
     // {
     //     fmt::print("Building BVH ...\n");
     //     const auto st = Debug::Now();
@@ -69,143 +30,72 @@ int main()
     //     fmt::print("Build BVH Done! Time Escape: {} ms\n", Debug::MicroSeconds(ed - st));
     // }
 
-    // const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.xml").string().c_str());
-    const Camera camera(
-        Camera::CAMERA_TYPE_PERSPECTIVE, 600, 600,
-        1.0, 1000.0, ToRadians(40.0),
-        Eigen::Vector3d{278, 278, -800},
-        Eigen::Vector3d{278, 278, 0},
-        Eigen::Vector3d{0.0, 0.0, 0.0}
-    );
-
-    CONSTEXPR RenderConfig config
-    {
-        .SPP = 4096,
-        .stop_prob = 0.02,
-    };
+    const Ref<HittableList> scene = MakeRef<HittableList>();
 
     Image film;
 
+    const RenderConfig config
     {
+        .SPP = 128 * (Eigen::Index)THREAD_POOL.ThreadNumber(),
+        .stop_prob = 0.02,
+    };
+
+    std::clog << "SPP: " << config.SPP << std::endl;
+
+    // NOTE: Edit Scene And Camera Below.
+
+    // Test Scene 0. Empty Cornell Box.
+    const Camera camera(Camera::CAMERA_TYPE_PERSPECTIVE, 100, 100, 1.0, 1000.0, ToRadians(40.0),Eigen::Vector3d{278, 278, -800},Eigen::Vector3d{278, 278, 0},{},Eigen::Vector3d{0.0, 0.0, 0.0});
+
+    // const auto red   = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.65, 0.05, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
+    // const auto white = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.73, 0.73, 0.73 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
+    // const auto green = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.12, 0.45, 0.15 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
+    // const auto light = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.00, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 15.0, 15.0, 15.0}));
+
+    const auto red   = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.60, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.05, 0.05, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
+    const auto white = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.23, 0.23, 0.23 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.50, 0.50, 0.50 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
+    const auto green = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.02, 0.35, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.10, 0.10, 0.10 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
+    const auto light = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.50, 0.50, 0.50 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.00, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 15.0, 15.0, 15.0 }));
+
+    scene->PushBack(MakeRef<Quadrangle>(green,Eigen::Vector3d{555.00,   0.00,   0.00},Eigen::Vector3d{  0.00,   0.00, 555.00},Eigen::Vector3d{  0.00, 555.00,   0.00}));
+    scene->PushBack(MakeRef<Quadrangle>(red,Eigen::Vector3d{0.00,   0.00,   0.00},Eigen::Vector3d{0.00, 555.00,   0.00},Eigen::Vector3d{0.00,   0.00, 555.00}));
+    scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(0,0,0),Eigen::Vector3d(0,0,555),Eigen::Vector3d(555,0,0)));
+    scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(555,555,555),Eigen::Vector3d(-555,0,0),Eigen::Vector3d(0,0,-555)));
+    scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(0,0,555),Eigen::Vector3d(0,555,0),Eigen::Vector3d(555,0,0)));
+    const auto t_light = MakeRef<Quadrangle>(light,Eigen::Vector3d(343, 554, 332),Eigen::Vector3d(-130,0,0),Eigen::Vector3d(0,0,-105));
+    scene->PushBack(t_light);
+
+    // Test Scene 1. Veach Mis.
+    // const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.xml").string().c_str());
+    // const Ref<Mesh> mesh = MakeRef<Mesh>(Mesh::FromOBJ((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.obj").string().c_str(), camera.lights));
+    // scene->PushBack(mesh);
+
+    // Test Scene 2. Cornell Box.
+    // const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "cornell-box" / "cornell-box.xml").string().c_str());
+    // const Ref<Mesh> mesh = MakeRef<Mesh>(Mesh::FromOBJ((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "cornell-box" / "cornell-box.obj").string().c_str(), camera.lights));
+    // scene->PushBack(mesh);
+
+    // Test Scene 3. Bathroom.
+    // const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "bathroom2" / "bathroom2.xml").string().c_str());
+    // const Ref<Mesh> mesh = MakeRef<Mesh>(Mesh::FromOBJ((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "bathroom2" / "bathroom2.obj").string().c_str(), camera.lights));
+    // scene->PushBack(mesh);
+
+    {   // Render To Image
         fmt::print("Rendering...\n");
         const auto st = Debug::Now();
-        Renderer::Render(camera, scene, config, film);
+        Renderer::Render(camera, scene, {}, config, film);
         const auto ed = Debug::Now();
         fmt::print("Render Done! Time Escape: {} ms\n", Debug::MilliSeconds(ed - st));
     }
 
-    fmt::print("Writing To Disk {}\n", (FS::path(STR(CMAKE_SOURCE_DIR)) / "Output" / "Output.png").string().c_str());
-    const bool result = Image::ToPNG(film, (FS::path(STR(CMAKE_SOURCE_DIR)) / "Output" / "Output.png").string().c_str());
-    ASSERT(result);
-    fmt::print("Write To Disk Done!\n");
+    {   // Write Image To Disk.
+        fmt::print("Writing To Disk {}\n", (FS::path(STR(CMAKE_SOURCE_DIR)) / "Output" / "Output.png").string().c_str());
+        const bool result = Image::ToPNG(film, (FS::path(STR(CMAKE_SOURCE_DIR)) / "Output" / "Output.png").string().c_str());
+        ASSERT(result);
+        fmt::print("Write To Disk Done!\n");
+    }
+
+    system("pause");
 
     return 0;
 }
-
-// const auto red   = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.65, .05, .05}));
-// const auto white = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.73, .73, .73}));
-// const auto green = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{.12, .45, .15}));
-// const auto light = MakeRef<EmissiveMaterial>(
-//     MakeRef<PureColorTexture2D>(Eigen::Vector3d{15, 15, 15}),
-//     MakeRef<DiffuseMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{1, 1, 1}))
-// );
-//
-// scene->PushBack(MakeRef<Quadrangle>(
-//     green,
-//     Eigen::Vector3d{555.00,   0.00,   0.00},
-//     Eigen::Vector3d{  0.00,   0.00, 555.00},
-//     Eigen::Vector3d{  0.00, 555.00,   0.00}
-// ));
-// scene->PushBack(MakeRef<Quadrangle>(
-//     red,
-//     Eigen::Vector3d{0.00,   0.00,   0.00},
-//     Eigen::Vector3d{0.00, 555.00,   0.00},
-//     Eigen::Vector3d{0.00,   0.00, 555.00}
-// ));
-// scene->PushBack(MakeRef<Quadrangle>(light, Eigen::Vector3d(343, 554, 332), Eigen::Vector3d(0,0,-105), Eigen::Vector3d(-130,0,0)));
-// scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(0,0,0), Eigen::Vector3d(0,0,555), Eigen::Vector3d(555,0,0)));
-// scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(555,555,555), Eigen::Vector3d(-555,0,0), Eigen::Vector3d(0,0,-555)));
-// scene->PushBack(MakeRef<Quadrangle>(white, Eigen::Vector3d(0,0,555), Eigen::Vector3d(0,555,0), Eigen::Vector3d(555,0,0)));
-
-
-// Camera FinalSceneSeries1(const Ref<HittableList>& scene) NOEXCEPT
-// {
-//     scene->PushBack(
-//         MakeRef<Sphere>(
-//             MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{0.5, 0.5, 0.5})),
-//             Eigen::Vector3d{0.0, -1000.0, 0.0}, 1000.0
-//         )
-//     );
-//
-//     scene->PushBack(
-//         MakeRef<Sphere>(
-//             MakeRef<DielectricMaterial>(1.5),
-//             Eigen::Vector3d{0.0, 1.0, 0.0}, 1.0
-//         )
-//     );
-//
-//     scene->PushBack(
-//         MakeRef<Sphere>(
-//             MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{0.4, 0.2, 0.1})),
-//             Eigen::Vector3d{-4.0, 1.0, 0.0}, 1.0
-//         )
-//     );
-//
-//     scene->PushBack(
-//         MakeRef<Sphere>(
-//             MakeRef<MetalMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{0.7, 0.6, 0.5}), 0.0),
-//             Eigen::Vector3d{4.0, 1.0, 0.0}, 1.0
-//         )
-//     );
-//
-//     for (int i = -11; i < 11; ++i)
-//     {
-//         for (int j = -11; j <= 11; ++j)
-//         {
-//             auto dist1 = RNG::UniformDist<double>(0.0, 1.0);
-//             auto dist2 = RNG::UniformDist<double>(0.0, 0.5);
-//             auto dist3 = RNG::UniformDist<double>(0.5, 1.0);
-//
-//             const double choose_mat = RNG::Rand(dist1);
-//             const Eigen::Vector3d center = {i + 0.9 * RNG::Rand(dist1), 0.2, j + 0.9 * RNG::Rand(dist1)};
-//
-//             if (choose_mat < 0.8)
-//             {
-//                 scene->PushBack(
-//                     MakeRef<Sphere>(
-//                         MakeRef<LambertMaterial>(
-//                             MakeRef<PureColorTexture2D>(Eigen::Vector3d{RNG::Rand(dist1) * RNG::Rand(dist1), RNG::Rand(dist1) * RNG::Rand(dist1), RNG::Rand(dist1) * RNG::Rand(dist1)})
-//                         ), center, 0.2
-//                     )
-//                 );
-//             }
-//             else if (choose_mat < 0.95)
-//             {
-//                 scene->PushBack(
-//                     MakeRef<Sphere>(
-//                         MakeRef<MetalMaterial>(
-//                             MakeRef<PureColorTexture2D>(Eigen::Vector3d{RNG::Rand(dist3) * RNG::Rand(dist3), RNG::Rand(dist3) * RNG::Rand(dist3), RNG::Rand(dist3) * RNG::Rand(dist3)}), RNG::Rand(dist2)
-//                         ), center, 0.2
-//                     )
-//                 );
-//             }
-//             else
-//             {
-//                 scene->PushBack(
-//                     MakeRef<Sphere>(
-//                         MakeRef<DielectricMaterial>(1.5),
-//                         center, 0.2
-//                     )
-//                 );
-//             }
-//         }
-//     }
-//
-//     return {
-//         Camera::CAMERA_TYPE_PERSPECTIVE, 960, 1200,
-//         1.0, 1000.0, ToRadians(20.0),
-//         Eigen::Vector3d{13.00, 2.00, 3.00},
-//         Eigen::Vector3d{ 0.00, 0.00, 0.00},
-//         Eigen::Vector3d{ 0.70, 0.80, 1.00}
-//     };
-// }

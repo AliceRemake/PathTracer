@@ -22,15 +22,15 @@ struct Image;
 
 struct RenderConfig
 {
-    const size_t SPP;
-    const double stop_prob; // Continue Probability.
+    const Eigen::Index SPP;
+    const double stop_prob;
 };
 
 struct Renderer
 {
-    NODISCARD static Eigen::Vector3d RayCast(const Ray& ray, const Ref<Hittable>& hittable, Eigen::Index bounce, double stop_prob) NOEXCEPT;
+    NODISCARD static Eigen::Vector3d RayCast(const Ray& ray, const Ref<Hittable>& hittable, const std::vector<Ref<Hittable>>& lights, Eigen::Index bounce, double stop_prob) NOEXCEPT;
 
-    static void Render(const Camera& camera, const Ref<Hittable>& hittable, const RenderConfig& config, Image& film) NOEXCEPT;
+    static void Render(const Camera& camera, const Ref<Hittable>& scene, const std::vector<Ref<Hittable>>& lights, const RenderConfig& config, Image& film) NOEXCEPT;
 };
 
 #endif //RENDERER_H

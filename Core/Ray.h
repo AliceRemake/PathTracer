@@ -22,6 +22,10 @@ struct Ray
     Eigen::Vector3d origin;
     Eigen::Vector3d direction;
 
+    NODISCARD Ray(Eigen::Vector3d origin, Eigen::Vector3d direction) NOEXCEPT
+    : origin(std::move(origin)), direction(std::move(direction))
+    {}
+
     NODISCARD Eigen::Vector3d At(const double t) const NOEXCEPT { return origin + t * direction; }
 };
 

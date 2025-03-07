@@ -29,7 +29,7 @@ struct HitRecord
     double t;
     ScatterType scatter_type;
     Ref<Material> material;
-    Eigen::Vector2d texcoord2d;
+    Eigen::Vector2d texcoord;
     Eigen::Vector3d hit_point;
     Eigen::Vector3d hit_normal;
 };

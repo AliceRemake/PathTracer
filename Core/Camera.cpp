@@ -11,6 +11,7 @@
 
 
 #include <Core/Camera.h>
+#include <Core/Debug.h>
 
 // Ignore tinyxml2 Warnings.
 #if defined(__GNUC__)
@@ -44,6 +45,31 @@ NODISCARD Camera Camera::FromXML(const char* filename) NOEXCEPT
     const char* xml_width = xml_camera->Attribute("width");                           ASSERT(xml_width != nullptr);
     const char* xml_fovy = xml_camera->Attribute("fovy");                             ASSERT(xml_fovy != nullptr);
 
+    std::unordered_map<std::string, Ref<Texture2D<Eigen::Vector3d>>> lights;
+    for (tinyxml2::XMLElement* e = doc.FirstChildElement("light"); e; e = e->NextSiblingElement("light"))
+    {
+        double x, y, z;
+        const char* xml_radiance = e->Attribute("radiance");
+        #ifdef _MSC_VER
+        #pragma warning(push)
+        #pragma warning(disable: 4996)
+        #endif
+        // ReSharper disable once CppDeprecatedEntity
+        sscanf(xml_radiance, "%lf,%lf,%lf", &x, &y, &z);
+        #ifdef _MSC_VER
+        #pragma warning(pop)
+        #endif
+        lights[e->Attribute("mtlname")] = MakeRef<PureColorTexture2D>(Eigen::Vector3d{x, y, z});
+    }
+
+    // #ifndef NDEBUG
+    // for (const auto &each: lights | std::views::values)
+    // {
+    //     Debug::Dump(stdout, each->Sample(Eigen::Vector2d{0.0, 0.0}));
+    //     fflush(stdout);
+    // }
+    // #endif
+
     Eigen::Vector3d eye = Eigen::Vector3d
     {
         (double)std::strtold(xml_eye->Attribute("x"), nullptr),
@@ -67,15 +93,15 @@ NODISCARD Camera Camera::FromXML(const char* filename) NOEXCEPT
 
     const Eigen::Index height = std::strtoll(xml_height, nullptr, 10);
     const Eigen::Index width = std::strtoll(xml_width, nullptr, 10);
-    const double fovy = (double)std::strtold(xml_fovy, nullptr);
+    const double fovy = ToRadians((double)std::strtold(xml_fovy, nullptr));
 
     if (strcmp(xml_camera->Attribute("type"), "perspective") == 0) LIKELY
     {
-        return {CAMERA_TYPE_PERSPECTIVE, height, width, 0.1, INF, fovy, eye, lookat, up, Eigen::Vector3d{0.0, 0.0, 0.0}};
+        return {CAMERA_TYPE_PERSPECTIVE, height, width, 0.1, INF, fovy, eye, lookat, up, lights, Eigen::Vector3d{0.0, 0.0, 0.0}};
     }
     else if (strcmp(xml_camera->Attribute("type"), "orthographic") == 0)
     {
-        return {CAMERA_TYPE_ORTHOGRAPHIC, height, width, 0.1, INF, fovy, eye, lookat, up, Eigen::Vector3d{0.0, 0.0, 0.0}};
+        return {CAMERA_TYPE_ORTHOGRAPHIC, height, width, 0.1, INF, fovy, eye, lookat, up, lights, Eigen::Vector3d{0.0, 0.0, 0.0}};
     }
     else UNLIKELY
     {

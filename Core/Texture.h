@@ -79,4 +79,20 @@ struct ImageTexture2D final : Texture2D<Eigen::Vector3d>
     }
 };
 
+// struct NormalTexture2D final : Texture2D<Eigen::Vector3d>
+// {
+//     Ref<Image> image;
+//
+//     NODISCARD explicit NormalTexture2D(const Ref<Image>& image) NOEXCEPT
+//     : image(image)
+//     {}
+//
+//     NODISCARD Eigen::Vector3d Sample(const Eigen::Vector2d &texcoord) const NOEXCEPT OVERRIDE
+//     {
+//         const Eigen::Index col = (Eigen::Index)std::floor(texcoord.x() * (double)image->Width()) % image->Width();
+//         const Eigen::Index row = (Eigen::Index)std::floor(texcoord.y() * (double)image->Height()) % image->Height();
+//         return (*image)(row, col).head(3);
+//     }
+// };
+
 #endif //TEXTURE_H

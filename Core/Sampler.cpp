@@ -1,24 +1,13 @@
 /**
   ******************************************************************************
-  * @file           : Loader.h
+  * @file           : Sampler.cpp
   * @author         : AliceRemake
   * @brief          : None
   * @attention      : None
-  * @date           : 24-11-27
+  * @date           : 25-3-5
   ******************************************************************************
   */
 
 
 
-#ifndef LOADER_H
-#define LOADER_H
-
-#include <Core/Common.h>
-#include <Core/Mesh.h>
-
-// struct Loader
-// {
-//     NODISCARD static Mesh LoadOBJ(const char* filename) NOEXCEPT;
-// };
-
-#endif //LOADER_H
+#include <Core/Sampler.h>
