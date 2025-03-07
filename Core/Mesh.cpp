@@ -229,7 +229,7 @@ NODISCARD Mesh Mesh::FromOBJ(const char* filename, const std::unordered_map<std:
             {
                 ambient_tex = MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.00, 0.00, 0.00 });
                 diffuse_tex = MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.50, 0.50, 0.50 });
-                specular_tex = MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.50, 0.50, 0.50 });
+                specular_tex = MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.00, 0.00, 0.00 });
                 emission_tex = lights.find(t_material.name)->second;
             }
 

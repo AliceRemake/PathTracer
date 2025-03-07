@@ -45,30 +45,30 @@ int main()
     // NOTE: Edit Scene And Camera Below.
 
     // Test Scene 0. Empty Cornell Box.
-    const Camera camera(Camera::CAMERA_TYPE_PERSPECTIVE, 100, 100, 1.0, 1000.0, ToRadians(40.0),Eigen::Vector3d{278, 278, -800},Eigen::Vector3d{278, 278, 0},{},Eigen::Vector3d{0.0, 0.0, 0.0});
-
-    // const auto red   = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.65, 0.05, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
-    // const auto white = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.73, 0.73, 0.73 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
-    // const auto green = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.12, 0.45, 0.15 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
-    // const auto light = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.00, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 15.0, 15.0, 15.0}));
-
-    const auto red   = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.60, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.05, 0.05, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
-    const auto white = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.23, 0.23, 0.23 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.50, 0.50, 0.50 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
-    const auto green = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.02, 0.35, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.10, 0.10, 0.10 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
-    const auto light = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.50, 0.50, 0.50 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.00, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 15.0, 15.0, 15.0 }));
-
-    scene->PushBack(MakeRef<Quadrangle>(green,Eigen::Vector3d{555.00,   0.00,   0.00},Eigen::Vector3d{  0.00,   0.00, 555.00},Eigen::Vector3d{  0.00, 555.00,   0.00}));
-    scene->PushBack(MakeRef<Quadrangle>(red,Eigen::Vector3d{0.00,   0.00,   0.00},Eigen::Vector3d{0.00, 555.00,   0.00},Eigen::Vector3d{0.00,   0.00, 555.00}));
-    scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(0,0,0),Eigen::Vector3d(0,0,555),Eigen::Vector3d(555,0,0)));
-    scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(555,555,555),Eigen::Vector3d(-555,0,0),Eigen::Vector3d(0,0,-555)));
-    scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(0,0,555),Eigen::Vector3d(0,555,0),Eigen::Vector3d(555,0,0)));
-    const auto t_light = MakeRef<Quadrangle>(light,Eigen::Vector3d(343, 554, 332),Eigen::Vector3d(-130,0,0),Eigen::Vector3d(0,0,-105));
-    scene->PushBack(t_light);
+    // const Camera camera(Camera::CAMERA_TYPE_PERSPECTIVE, 100, 100, 1.0, 1000.0, ToRadians(40.0),Eigen::Vector3d{278, 278, -800},Eigen::Vector3d{278, 278, 0},{},Eigen::Vector3d{0.0, 0.0, 0.0});
+    //
+    // // const auto red   = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.65, 0.05, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
+    // // const auto white = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.73, 0.73, 0.73 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
+    // // const auto green = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.12, 0.45, 0.15 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0}));
+    // // const auto light = MakeRef<LambertMaterial>(MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.00, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 15.0, 15.0, 15.0}));
+    //
+    // const auto red   = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.60, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.05, 0.05, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
+    // const auto white = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.23, 0.23, 0.23 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.50, 0.50, 0.50 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
+    // const auto green = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.02, 0.35, 0.05 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.10, 0.10, 0.10 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }));
+    // const auto light = MakeRef<BlinnPhongMaterial>(2.0, MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.0, 0.0, 0.0 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.50, 0.50, 0.50 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 0.00, 0.00, 0.00 }),MakeRef<PureColorTexture2D>(Eigen::Vector3d{ 15.0, 15.0, 15.0 }));
+    //
+    // scene->PushBack(MakeRef<Quadrangle>(green,Eigen::Vector3d{555.00,   0.00,   0.00},Eigen::Vector3d{  0.00,   0.00, 555.00},Eigen::Vector3d{  0.00, 555.00,   0.00}));
+    // scene->PushBack(MakeRef<Quadrangle>(red,Eigen::Vector3d{0.00,   0.00,   0.00},Eigen::Vector3d{0.00, 555.00,   0.00},Eigen::Vector3d{0.00,   0.00, 555.00}));
+    // scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(0,0,0),Eigen::Vector3d(0,0,555),Eigen::Vector3d(555,0,0)));
+    // scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(555,555,555),Eigen::Vector3d(-555,0,0),Eigen::Vector3d(0,0,-555)));
+    // scene->PushBack(MakeRef<Quadrangle>(white,Eigen::Vector3d(0,0,555),Eigen::Vector3d(0,555,0),Eigen::Vector3d(555,0,0)));
+    // const auto t_light = MakeRef<Quadrangle>(light,Eigen::Vector3d(343, 554, 332),Eigen::Vector3d(-130,0,0),Eigen::Vector3d(0,0,-105));
+    // scene->PushBack(t_light);
 
     // Test Scene 1. Veach Mis.
-    // const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.xml").string().c_str());
-    // const Ref<Mesh> mesh = MakeRef<Mesh>(Mesh::FromOBJ((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.obj").string().c_str(), camera.lights));
-    // scene->PushBack(mesh);
+    const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.xml").string().c_str());
+    const Ref<Mesh> mesh = MakeRef<Mesh>(Mesh::FromOBJ((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "veach-mis" / "veach-mis.obj").string().c_str(), camera.lights));
+    scene->PushBack(mesh);
 
     // Test Scene 2. Cornell Box.
     // const Camera camera = Camera::FromXML((FS::path(STR(CMAKE_SOURCE_DIR)) / "Input" / "cornell-box" / "cornell-box.xml").string().c_str());
@@ -95,7 +95,7 @@ int main()
         fmt::print("Write To Disk Done!\n");
     }
 
-    system("pause");
+    (void)system("pause");
 
     return 0;
 }
