@@ -74,65 +74,6 @@ NODISCARD Eigen::Vector3d Renderer::RayCast(const Ray& ray, const Ref<Hittable>&
     }
 
     return Lo;
-
-    // Ref<Sampler> sampler = nullptr;
-    //
-    // if (DynCast<LambertMaterial>(material.get()))
-    // {
-    //     sampler = MakeRef<CosineHemiSphereSampler>();
-    // }
-    // else if (const BlinnPhongMaterial* mat = DynCast<BlinnPhongMaterial>(material.get()); mat != nullptr)
-    // {
-    //     // sampler = MakeRef<CosineHemiSphereSampler>();
-    //     // sampler = MakeRef<BlinnPhongSpecularSampler>(mat->ns);
-    //
-    //     const Ref<Sampler> diffuse_sampler = MakeRef<CosineHemiSphereSampler>();
-    //     const Ref<Sampler> specular_sampler = MakeRef<BlinnPhongSpecularSampler>(mat->ns);
-    //     sampler = MakeRef<MixSampler>(
-    //         std::vector{diffuse_sampler, specular_sampler},
-    //         std::vector{mat->diffuse_tex->Sample(texcoord2d).norm(), mat->specular_tex->Sample(texcoord2d).norm()}
-    //     );
-    // }
-    // else
-    // {
-    //     ASSERT(false);
-    // }
-    //
-    // const Eigen::Vector3d omega_i = sampler->Sample(texcoord2d, normal, omega_o);
-    // const double pdf = std::max(sampler->PDF(texcoord2d, normal, omega_i, omega_o), 1e-6);
-
-
-    // if (to_light.dot(record.hit_normal) < 0)
-    //     return Le;
-    //
-    // if (light_cosine < 100 * EPS)
-    //     return Le;
-    //
-    // if (FIsZero(pdf)) { return Le; }
-    // if (FIsInfinity(pdf)) { exit(0); }
-
-    // bounce == 0 : Emission
-    // bounce == 1 : Direct
-    // bounce == 2 : Indirect
-
-    // if (auto dist = RNG::UniformDist<double>(0, 1); RNG::Rand(dist) < stop_prob) UNLIKELY
-    // {
-    //     // return Eigen::Vector3d{ 0.0, 0.0, 0.0 };
-    //     return Le;
-    // }
-    //
-    // // if (bounce < 0) UNLIKELY
-    // // {
-    // //     Eigen::Vector3d Li = RayCast(Ray(record.hit_point, omega_i), hittable, bounce + 1, stop_prob);
-    // //     return Le.array() + (Li.array() * material->BRDF(texcoord2d, normal, omega_i, omega_o).array() * normal.dot(omega_i)) / pdf;
-    // // }
-    //
-    // // return { 0.0, 0.0, 0.0 };
-    //
-    //
-    //
-    // Eigen::Vector3d Li = RayCast(Ray(record.hit_point, omega_i), hittable, bounce + 1, stop_prob);
-    // return Le.array() + (Li.array() * material->BRDF(texcoord2d, normal, omega_i, omega_o).array() * normal.dot(omega_i)) / (pdf * (1 - stop_prob));
 }
 
 void Renderer::Render(const Camera& camera, const Ref<Hittable>& scene, const std::vector<Ref<Hittable>>& lights, const RenderConfig& config, Image& film) NOEXCEPT
@@ -166,11 +107,11 @@ void Renderer::Render(const Camera& camera, const Ref<Hittable>& scene, const st
                         return RayCast(sample_ray, scene, lights, 0, config.stop_prob);
                     }, RNG::Rand(dist));
                     #else
-                    color += [&camera, &hittable, &config, row, col](const unsigned int seed) -> Eigen::Vector3d
+                    color += [&camera, &scene, &lights, &config, row, col, jitter_size, jitter_row, jitter_col](const unsigned int seed) -> Eigen::Vector3d
                     {
                         RNG::Seed(seed);
-                        const Ray sample_ray = camera.SampleRay(row, col);
-                        return RayCast(sample_ray, hittable, 0, config.stop_prob);
+                        const Ray sample_ray = camera.SampleRay(row, col, jitter_size, jitter_row, jitter_col);
+                        return RayCast(sample_ray, scene, lights, 0, config.stop_prob);
                     }(RNG::Rand(dist));
                     #endif
                 }

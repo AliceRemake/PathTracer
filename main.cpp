@@ -95,7 +95,5 @@ int main()
         fmt::print("Write To Disk Done!\n");
     }
 
-    (void)system("pause");
-
-    return 0;
+    return system("pause");
 }
