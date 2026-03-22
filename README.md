@@ -1,4 +1,4 @@
-# PathTracer [![build](https://github.com/AliceRemake/PathTracer/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/AliceRemake/PathTracer/actions/workflows/cmake-multi-platform.yml)
+# PathTracer [![build](https://github.com/AliceRemake/PathTracer/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/AliceRemake/PathTracer/actions/workflows/cmake-multi-platform.yml) [[Gallery](Doc/README.md)]
 
 A Monte Carlo Path Tracer.
 
