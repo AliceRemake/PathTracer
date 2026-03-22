@@ -56,8 +56,3 @@ cmake ..
 ```
 
 After Generate, Double-Click The Solution File With Extension `.sln` And Build The Target `ALL_BUILD`
-
-## TODO
-
-* AABB
-* Phong Material
